@@ -145,3 +145,102 @@ entorno accesible para la demostración del proyecto.
 ## Estado del proyecto
 
 Proyecto en etapa inicial de planificación y organización.
+
+## 3. Arquitectura y módulos
+
+### Arquitectura del sistema
+
+El sistema utilizará una arquitectura cliente-servidor dividida en frontend, backend y base de datos.
+
+- **Frontend:** interfaz desarrollada con JavaScript o TypeScript. Permitirá que el personal administrativo utilice las funciones del sistema.
+- **Backend:** aplicación desarrollada con Java y Spring Boot. Contendrá la lógica de negocio, las validaciones y la API REST.
+- **Persistencia:** se utilizará Spring Data JPA para relacionar las entidades Java con las tablas de la base de datos.
+- **Base de datos:** se utilizará MySQL para almacenar pacientes, profesionales, especialidades, horarios, usuarios y turnos.
+- **Comunicación:** el frontend se comunicará con el backend mediante una API REST utilizando solicitudes HTTP.
+- **Control de versiones:** el código y la documentación se administrarán mediante Git y GitHub.
+- **Despliegue:** se utilizarán plataformas cloud para contar con un entorno accesible durante la demostración.
+
+El backend estará organizado en las siguientes capas:
+
+- **Controller:** recibe las solicitudes enviadas desde el frontend.
+- **Service:** contiene la lógica de negocio y las validaciones.
+- **Repository:** realiza las operaciones de acceso a la base de datos.
+- **Model o Entity:** representa las entidades del sistema.
+- **DTO:** transporta información entre el frontend y el backend.
+- **Exception:** centraliza el manejo de errores.
+- **Security:** controla la autenticación y los permisos según el rol del usuario.
+
+### Módulos del sistema
+
+#### Módulo de pacientes
+
+Permitirá registrar, consultar, modificar y dar de baja lógica a los pacientes.
+
+#### Módulo de profesionales
+
+Permitirá registrar y administrar los datos de los profesionales de la clínica.
+
+#### Módulo de especialidades
+
+Permitirá registrar las especialidades ofrecidas por la institución y asociarlas con los profesionales correspondientes.
+
+#### Módulo de horarios de atención
+
+Permitirá definir los días, horarios y duración de los turnos de cada profesional.
+
+#### Módulo de disponibilidad
+
+Permitirá consultar los horarios disponibles antes de asignar un turno.
+
+#### Módulo de turnos
+
+Permitirá registrar y consultar turnos relacionando un paciente, un profesional, una especialidad, una fecha y un horario.
+
+#### Módulo de agenda
+
+Permitirá visualizar los turnos organizados por profesional y fecha.
+
+#### Módulo de cancelación y reprogramación
+
+Permitirá cancelar un turno o modificar su fecha y horario.
+
+#### Módulo de estados de turnos
+
+Permitirá identificar cada turno mediante los estados pendiente, atendido, cancelado o ausente.
+
+#### Módulo de usuarios y acceso
+
+Permitirá administrar usuarios y controlar el acceso al sistema según los roles Administrador, Recepcionista y Profesional.
+
+### Esquema de la base de datos
+
+La base de datos relacional `clinica_medica` fue diseñada para MySQL y contiene las siguientes tablas:
+
+| Tabla | Responsabilidad |
+|---|---|
+| `usuarios` | Almacena los datos de acceso y el rol de cada usuario. |
+| `pacientes` | Almacena la información personal y de contacto de los pacientes. |
+| `profesionales` | Almacena los datos y la matrícula de los profesionales. |
+| `especialidades` | Almacena las especialidades ofrecidas por la clínica. |
+| `profesional_especialidad` | Representa la relación entre profesionales y especialidades. |
+| `horarios_atencion` | Registra los días y horarios de atención de cada profesional. |
+| `turnos` | Relaciona pacientes, profesionales, especialidades, fechas, horarios y estados. |
+
+### Relaciones principales
+
+- Un paciente puede tener varios turnos.
+- Un profesional puede atender varios turnos.
+- Un profesional puede tener una o más especialidades.
+- Una especialidad puede estar asociada con varios profesionales.
+- Un profesional puede tener varios horarios de atención.
+- Cada turno corresponde a un paciente, un profesional y una especialidad.
+- No se permiten dos turnos para el mismo profesional en la misma fecha y horario.
+
+### Archivos de base de datos
+
+Los archivos correspondientes a la base de datos se encuentran en la carpeta `database`:
+
+- `schema.sql`: crea la base de datos, las tablas, las relaciones y las restricciones.
+- `datos_prueba.sql`: incorpora información de ejemplo para comprobar el funcionamiento del esquema.
+
+Para crear la base de datos se debe ejecutar primero `schema.sql` y luego `datos_prueba.sql`.
