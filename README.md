@@ -123,16 +123,16 @@ framework Spring Boot resulta adecuado para sistemas de gestión con múltiples 
 relacionadas entre sí, ya que ofrece herramientas para la persistencia de datos, la validación
 de la información y el control de acceso por roles.
 
-- Backend: Java con el framework Spring Boot, que provee una estructura basada en
+- **Backend**: Java con el framework Spring Boot, que provee una estructura basada en
 controlar servicios y repositorios, facilitando la organización de la lógica de negocio.
-- Persistencia de datos: Spring Data JPA, nos permite mapear las entidades del dominio
+- **Persistencia de datos**: Spring Data JPA, nos permite mapear las entidades del dominio
 directamente a la base de datos, reduciendo el código repetitivo de acceso a datos.
-- Base de datos: MySQL, motor de base de datos robusto y utilizado en Java.
-- Frontend: React (JavaScript/TypeScript) para la construcción de la interfaz, junto con Bootstrap (react-bootstrap) para el diseño y estilos de los componentes. Esto permite contar con componentes visuales ya probados (formularios, tablas, botones, navegación) y mantener una interfaz consistente sin invertir tiempo excesivo en diseño desde cero. React consume la información del backend a través de una API REST, manteniendo el frontend y el backend desacoplados.
-- Seguridad: Spring Security junto con JWT (JSON Web Tokens) para la autenticación y autorización de usuarios, controlando el acceso a los distintos endpoints según el rol (administrador, recepcionista, profesional, paciente). Las contraseñas se almacenan encriptadas mediante BCrypt. Además, se configura CORS en el backend para permitir la comunicación segura con el frontend, y se aplican validaciones de datos del lado del servidor (Bean Validation) para asegurar la integridad de la información recibida.
-- Control de versiones: Git y GitHub, para la gestión colaborativa del código fuente y el
+- **Base de datos**: MySQL, motor de base de datos robusto y utilizado en Java.
+- **Frontend**: React con TypeScript para la construcción de la interfaz, junto con Bootstrap (react-bootstrap) para el diseño y estilos de los componentes. Esto permite contar con componentes visuales ya probados (formularios, tablas, botones, navegación) y mantener una interfaz consistente sin invertir tiempo excesivo en diseño desde cero. React consume la información del backend a través de una API REST, manteniendo el frontend y el backend desacoplados.
+-  **Seguridad:** Spring Security junto con JWT (JSON Web Tokens) para la autenticación y autorización de usuarios, controlando el acceso a los distintos endpoints según los roles Administrador, Recepcionista y Profesional. Las contraseñas se almacenarán de forma segura mediante un hash generado con BCrypt y nunca como texto visible. Después de iniciar sesión, el usuario recibirá un token JWT que deberá enviar en las solicitudes realizadas al backend. Además, se configurará CORS para permitir la comunicación con el frontend autorizado y se aplicarán validaciones de datos del lado del servidor mediante Bean Validation.
+- **Control de versiones**: Git y GitHub, para la gestión colaborativa del código fuente y el
 seguimiento de los cambios realizados por el equipo.
-- Despliegue: vamos a utilizar plataformas cloud, con el objetivo de contar con un
+- **Despliegue**: vamos a utilizar plataformas cloud, con el objetivo de contar con un
 entorno accesible para la demostración del proyecto.
 
 
@@ -151,7 +151,7 @@ Proyecto en etapa inicial de planificación y organización.
 
 El sistema utilizará una arquitectura cliente-servidor dividida en frontend, backend y base de datos.
 
-- **Frontend:** interfaz desarrollada con JavaScript o TypeScript. Permitirá que el personal administrativo utilice las funciones del sistema.
+-  **Frontend:** interfaz desarrollada con React, TypeScript y Vite. Para los estilos se utilizarán React-Bootstrap, Bootstrap y hojas CSS propias. Permitirá que el personal administrativo utilice las funciones del sistema y se comunicará con el backend mediante una API REST.
 - **Backend:** aplicación desarrollada con Java y Spring Boot. Contendrá la lógica de negocio, las validaciones y la API REST.
 - **Persistencia:** se utilizará Spring Data JPA para relacionar las entidades Java con las tablas de la base de datos.
 - **Base de datos:** se utilizará MySQL para almacenar pacientes, profesionales, especialidades, horarios, usuarios y turnos.
@@ -288,7 +288,7 @@ Los roles contemplados inicialmente serán:
 - Profesional: podrá consultar la información relacionada con su propia agenda.
   
 La autenticación y autorización serán implementadas en el backend utilizando Spring Security y JWT.
-
+Los pacientes formarán parte de la información administrada por el sistema, pero no tendrán acceso mediante una cuenta propia en esta primera versión. El portal de autogestión para pacientes podrá incorporarse como una ampliación futura.
 
 ### Esquema de la base de datos
 
