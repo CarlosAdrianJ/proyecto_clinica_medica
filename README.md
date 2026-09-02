@@ -128,9 +128,8 @@ controlar servicios y repositorios, facilitando la organización de la lógica d
 - Persistencia de datos: Spring Data JPA, nos permite mapear las entidades del dominio
 directamente a la base de datos, reduciendo el código repetitivo de acceso a datos.
 - Base de datos: MySQL, motor de base de datos robusto y utilizado en Java.
-- Frontend: framework basado en JavaScript/Typescript, que consume la información del
-backend a través de una API REST. Esto permite mantener el frontend y el backend
-desacoplados y facilita el trabajo en paralelo dentro del equipo
+- Frontend: React (JavaScript/TypeScript) para la construcción de la interfaz, junto con Bootstrap (react-bootstrap) para el diseño y estilos de los componentes. Esto permite contar con componentes visuales ya probados (formularios, tablas, botones, navegación) y mantener una interfaz consistente sin invertir tiempo excesivo en diseño desde cero. React consume la información del backend a través de una API REST, manteniendo el frontend y el backend desacoplados.
+- Seguridad: Spring Security junto con JWT (JSON Web Tokens) para la autenticación y autorización de usuarios, controlando el acceso a los distintos endpoints según el rol (administrador, profesional, paciente). Las contraseñas se almacenan encriptadas mediante BCrypt. Además, se configura CORS en el backend para permitir la comunicación segura con el frontend, y se aplican validaciones de datos del lado del servidor (Bean Validation) para asegurar la integridad de la información recibida.
 - Control de versiones: Git y GitHub, para la gestión colaborativa del código fuente y el
 seguimiento de los cambios realizados por el equipo.
 - Despliegue: vamos a utilizar plataformas cloud, con el objetivo de contar con un
