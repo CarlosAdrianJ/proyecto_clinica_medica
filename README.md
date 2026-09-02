@@ -129,7 +129,7 @@ controlar servicios y repositorios, facilitando la organización de la lógica d
 directamente a la base de datos, reduciendo el código repetitivo de acceso a datos.
 - Base de datos: MySQL, motor de base de datos robusto y utilizado en Java.
 - Frontend: React (JavaScript/TypeScript) para la construcción de la interfaz, junto con Bootstrap (react-bootstrap) para el diseño y estilos de los componentes. Esto permite contar con componentes visuales ya probados (formularios, tablas, botones, navegación) y mantener una interfaz consistente sin invertir tiempo excesivo en diseño desde cero. React consume la información del backend a través de una API REST, manteniendo el frontend y el backend desacoplados.
-- Seguridad: Spring Security junto con JWT (JSON Web Tokens) para la autenticación y autorización de usuarios, controlando el acceso a los distintos endpoints según el rol (administrador, profesional, paciente). Las contraseñas se almacenan encriptadas mediante BCrypt. Además, se configura CORS en el backend para permitir la comunicación segura con el frontend, y se aplican validaciones de datos del lado del servidor (Bean Validation) para asegurar la integridad de la información recibida.
+- Seguridad: Spring Security junto con JWT (JSON Web Tokens) para la autenticación y autorización de usuarios, controlando el acceso a los distintos endpoints según el rol (administrador, recepcionista, profesional, paciente). Las contraseñas se almacenan encriptadas mediante BCrypt. Además, se configura CORS en el backend para permitir la comunicación segura con el frontend, y se aplican validaciones de datos del lado del servidor (Bean Validation) para asegurar la integridad de la información recibida.
 - Control de versiones: Git y GitHub, para la gestión colaborativa del código fuente y el
 seguimiento de los cambios realizados por el equipo.
 - Despliegue: vamos a utilizar plataformas cloud, con el objetivo de contar con un
@@ -171,45 +171,124 @@ El backend estará organizado en las siguientes capas:
 
 ### Módulos del sistema
 
-#### Módulo de pacientes
+Para organizar el desarrollo del sistema se definieron los siguientes módulos funcionales. Cada módulo agrupa las funcionalidades relacionadas con una parte específica de la gestión de turnos de la clínica.
 
-Permitirá registrar, consultar, modificar y dar de baja lógica a los pacientes.
+#### 1. Módulo de pacientes
 
-#### Módulo de profesionales
+Este módulo permitirá administrar la información de los pacientes registrados en el sistema.
+Las principales funcionalidades serán:
+- Registrar nuevos pacientes.
+- Consultar pacientes registrados.
+- Buscar pacientes por sus datos identificatorios.
+- Modificar los datos de un paciente.
+- Realizar la baja lógica de un paciente mediante el campo activo.
+  
+Los datos principales administrados serán nombre, apellido, DNI, fecha de nacimiento, teléfono, correo electrónico y dirección.
 
-Permitirá registrar y administrar los datos de los profesionales de la clínica.
 
-#### Módulo de especialidades
+#### 2. Módulo de profesionales
 
-Permitirá registrar las especialidades ofrecidas por la institución y asociarlas con los profesionales correspondientes.
+Permitirá administrar los profesionales que brindan atención en la clínica.
+Las principales funcionalidades serán:
+- Registrar profesionales.
+- Consultar y buscar profesionales.
+- Modificar sus datos.
+- Registrar número de matrícula.
+- Realizar la baja lógica de profesionales.
+- Asociar uno o más profesionales con las especialidades correspondientes.
+  
+De esta manera, un profesional podrá encontrarse relacionado con una o más especialidades ofrecidas por la institución.
 
-#### Módulo de horarios de atención
 
-Permitirá definir los días, horarios y duración de los turnos de cada profesional.
+#### 3. Módulo de especialidades
 
-#### Módulo de disponibilidad
+Permitirá administrar las especialidades médicas disponibles en la clínica.
+Las principales funcionalidades serán:
+- Registrar nuevas especialidades.
+- Consultar las especialidades disponibles.
+- Modificar sus datos.
+- Realizar su baja lógica.
+- Asociar especialidades con los profesionales que las brindan.
+  
+La relación entre profesionales y especialidades será de muchos a muchos, permitiendo que un profesional pueda contar con más de una especialidad y que una especialidad pueda ser brindada por diferentes profesionales.
 
-Permitirá consultar los horarios disponibles antes de asignar un turno.
 
-#### Módulo de turnos
+#### 4. Módulo de horarios de atención
 
-Permitirá registrar y consultar turnos relacionando un paciente, un profesional, una especialidad, una fecha y un horario.
+Permitirá configurar los días y horarios en los que cada profesional se encuentra disponible para brindar atención.
+Las principales funcionalidades serán:
+- Registrar días de atención.
+- Definir hora de inicio y finalización de cada jornada o bloque horario.
+- Establecer la duración de los turnos.
+- Consultar los horarios configurados para cada profesional.
+- Modificar o desactivar horarios existentes.
+  
+Esta información será utilizada posteriormente para calcular la disponibilidad de turnos.
 
-#### Módulo de agenda
 
-Permitirá visualizar los turnos organizados por profesional y fecha.
+#### 5. Módulo de disponibilidad
 
-#### Módulo de cancelación y reprogramación
+Este módulo será responsable de determinar los horarios disponibles de un profesional para una fecha determinada.
+Para ello tendrá en cuenta:
+- Los días y horarios de atención configurados para el profesional.
+- La duración establecida para los turnos.
+- Los turnos que ya se encuentran registrados.
+- La fecha solicitada.
+  
+El sistema deberá mostrar únicamente horarios disponibles y evitar que se asignen dos turnos al mismo profesional en la misma fecha y horario.
 
-Permitirá cancelar un turno o modificar su fecha y horario.
 
-#### Módulo de estados de turnos
+#### 6. Módulo de turnos
 
-Permitirá identificar cada turno mediante los estados pendiente, atendido, cancelado o ausente.
+Será el módulo central del sistema y permitirá administrar el ciclo de vida de los turnos de la clínica.
+Las principales funcionalidades serán:
+- Registrar un nuevo turno.
+- Asociar el turno con un paciente.
+- Seleccionar un profesional y una especialidad válida para dicho profesional.
+- Seleccionar fecha y horario.
+- Validar la disponibilidad antes de registrar el turno.
+- Consultar los turnos existentes.
+- Cancelar turnos.
+- Reprogramar turnos modificando su fecha u horario.
+- Actualizar el estado de un turno.
+  
+Los estados contemplados inicialmente serán:
+* PENDIENTE
+* ATENDIDO
+* CANCELADO
+* AUSENTE
+  
+Además, el sistema deberá impedir la creación de turnos superpuestos para un mismo profesional.
 
-#### Módulo de usuarios y acceso
 
-Permitirá administrar usuarios y controlar el acceso al sistema según los roles Administrador, Recepcionista y Profesional.
+#### 7. Módulo de agenda
+
+Permitirá visualizar de manera organizada los turnos registrados en el sistema.
+La agenda podrá consultarse principalmente utilizando criterios como:
+- Profesional.
+- Fecha.
+- Estado del turno.
+  
+Esto permitirá al personal administrativo consultar rápidamente la planificación de atención y a los profesionales visualizar los turnos correspondientes a su agenda.
+
+
+#### 8. Módulo de usuarios y control de acceso
+
+Este módulo administrará el acceso de los usuarios al sistema.
+Las principales funcionalidades serán:
+- Autenticación mediante nombre de usuario y contraseña.
+- Control de acceso mediante roles.
+- Activación o desactivación de usuarios.
+- Asociación de una cuenta con un profesional cuando corresponda.
+- Restricción de funcionalidades según el rol del usuario.
+  
+Los roles contemplados inicialmente serán:
+- Administrador: tendrá acceso a la administración general del sistema.
+- Recepcionista: podrá gestionar pacientes, consultar disponibilidad y administrar turnos.
+- Profesional: podrá consultar la información relacionada con su propia agenda.
+  
+La autenticación y autorización serán implementadas en el backend utilizando Spring Security y JWT.
+
 
 ### Esquema de la base de datos
 
