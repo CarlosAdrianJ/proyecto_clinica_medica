@@ -290,6 +290,19 @@ Los roles contemplados inicialmente serán:
 La autenticación y autorización serán implementadas en el backend utilizando Spring Security y JWT.
 Los pacientes formarán parte de la información administrada por el sistema, pero no tendrán acceso mediante una cuenta propia en esta primera versión. El portal de autogestión para pacientes podrá incorporarse como una ampliación futura.
 
+### Estado de los módulos subidos al repositorio
+
+El listado anterior describe los módulos planificados para el sistema. A continuación se distingue el código implementado y subido al repositorio del trabajo que aún está en desarrollo:
+
+| Módulo | Estado al 15/09/2026 | Ubicación en el repositorio |
+| --- | --- | --- |
+| Pacientes | Implementado, probado e integrado en `main`. | `backend/src/main/java/com/clinica/medica/paciente/` |
+| Profesionales | Código inicial subido a la rama de Fiorella; pendiente de ajustes, pruebas e integración en `main`. | `backend/src/main/java/com/clinica/medica/profesional/` en `feature/profesionales-fiorella` |
+| Especialidades | Código subido a la rama de Valentina; pendiente de pruebas e integración en `main`. | `backend/src/main/java/com/clinica/medica/especialidad/` en `feature/especialidades-frontend-valentina` |
+| Horarios, disponibilidad, turnos, agenda y usuarios | Planificados; aún no implementados como módulos funcionales. | Descritos en este README |
+
+La configuración actual de Spring Security permite proteger y probar la API durante el desarrollo. La autenticación con usuarios, roles y JWT descrita en la arquitectura sigue pendiente de implementación.
+
 ### Esquema de la base de datos
 
 La base de datos relacional `clinica_medica` fue diseñada para MySQL y contiene las siguientes tablas:
