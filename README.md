@@ -325,13 +325,29 @@ La base de datos relacional `clinica_medica` fue diseñada para MySQL y contiene
 - Una especialidad puede estar asociada con varios profesionales.
 - Un profesional puede tener varios horarios de atención.
 - Cada turno corresponde a un paciente, un profesional y una especialidad.
-- No se permiten dos turnos para el mismo profesional en la misma fecha y horario.
+- La base de datos impide dos turnos con el mismo profesional, fecha y hora de inicio. La validación de intervalos superpuestos y la reutilización de horarios de turnos cancelados quedan pendientes para el módulo de turnos.
 
 ### Archivos de base de datos
 
-Los archivos correspondientes a la base de datos se encuentran en la carpeta `database`:
+Los archivos se encuentran en la carpeta `database`:
 
 - `schema.sql`: crea la base de datos, las tablas, las relaciones y las restricciones.
-- `datos_prueba.sql`: incorpora información de ejemplo para comprobar el funcionamiento del esquema.
+- `datos_pruebas.sql`: incorpora información de ejemplo.
 
-Para crear la base de datos se debe ejecutar primero `schema.sql` y luego `datos_prueba.sql`.
+En un entorno de pruebas, ejecutar primero `schema.sql` y luego `datos_pruebas.sql`.
+
+### Precaución al ejecutar el esquema
+
+`schema.sql` elimina las tablas existentes antes de recrearlas, por lo que borra sus datos. Utilizarlo únicamente en un entorno de desarrollo o pruebas sin información que se necesite conservar.
+
+### Pruebas del módulo de pacientes
+
+El servicio de pacientes cuenta con 12 pruebas unitarias integradas en `main`. Verifican consultas, creación, actualización, DNI duplicado, pacientes inexistentes y baja lógica.
+
+Desde la raíz del proyecto:
+
+```powershell
+.\backend\mvnw.cmd -f .\backend\pom.xml "-Dtest=PacienteServiceTest" test
+```
+
+Estas pruebas utilizan un repositorio simulado; no verifican la conexión con MySQL ni el funcionamiento completo de la API.
