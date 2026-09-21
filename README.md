@@ -298,7 +298,7 @@ El listado anterior describe los módulos planificados para el sistema. A contin
 | --- | --- | --- |
 | Pacientes | Implementado, probado e integrado en `main`. | `backend/src/main/java/com/clinica/medica/paciente/` |
 | Profesionales | Código inicial subido a la rama de Fiorella; pendiente de ajustes, pruebas e integración en `main`. | `backend/src/main/java/com/clinica/medica/profesional/` en `feature/profesionales-fiorella` |
-| Especialidades | Código subido a la rama de Valentina; pendiente de pruebas e integración en `main`. | `backend/src/main/java/com/clinica/medica/especialidad/` en `feature/especialidades-frontend-valentina` |
+| Especialidades | Código subido a la rama de Valentina; probado con Postman, pendiente de integración en `main`. | `backend/src/main/java/com/clinica/medica/especialidad/` en `feature/especialidades-frontend-valentina` |
 | Horarios, disponibilidad, turnos, agenda y usuarios | Planificados; aún no implementados como módulos funcionales. | Descritos en este README |
 
 La configuración actual de Spring Security permite proteger y probar la API durante el desarrollo. La autenticación con usuarios, roles y JWT descrita en la arquitectura sigue pendiente de implementación.
