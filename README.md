@@ -143,13 +143,33 @@ entorno accesible para la demostración del proyecto.
 
 ## Estado del proyecto
 
-Proyecto en etapa inicial de planificación y organización.
+El proyecto se encuentra en etapa de desarrollo. Los módulos de pacientes y especialidades están integrados en `main`, el frontend cuenta con una estructura inicial y los módulos restantes continúan pendientes o en desarrollo.
+
+## Cambios respecto a la primera entrega
+
+A partir de las observaciones recibidas en la primera entrega se realizaron los siguientes ajustes:
+
+| Observación recibida | Modificación realizada | Estado |
+| --- | --- | --- |
+| Especificar con mayor precisión las tecnologías utilizadas para desarrollar el frontend y sus estilos. | Se definió el uso de React con TypeScript y Vite, junto con React-Bootstrap, Bootstrap y hojas CSS propias. También se explicó que el frontend se comunicará con el backend mediante una API REST. | Documentación corregida y estructura inicial del frontend integrada en `main`. |
+| Ampliar la definición de seguridad y control de acceso del sistema. | Se documentó el uso previsto de Spring Security, JWT, BCrypt, CORS y Bean Validation. También se definieron los roles `ADMINISTRADOR`, `RECEPCIONISTA` y `PROFESIONAL`, junto con sus responsabilidades generales. | Diseño documentado; autenticación con JWT y control definitivo por roles pendientes de implementación. |
 
 ## 3. Arquitectura y módulos
 
 ### Arquitectura del sistema
 
 El sistema utilizará una arquitectura cliente-servidor dividida en frontend, backend y base de datos.
+
+#### Diagrama de arquitectura
+
+```mermaid
+flowchart TD
+    A["Frontend: React + TypeScript"] -->|API REST| B["Controllers: Spring Boot"]
+    B --> C["Services: lógica de negocio"]
+    C --> D["Repositories: Spring Data JPA"]
+    D --> E[("Base de datos MySQL")]
+    F["Seguridad prevista: Spring Security + JWT"] -.-> B
+```
 
 -  **Frontend:** interfaz desarrollada con React, TypeScript y Vite. Para los estilos se utilizarán React-Bootstrap, Bootstrap y hojas CSS propias. Permitirá que el personal administrativo utilice las funciones del sistema y se comunicará con el backend mediante una API REST.
 - **Backend:** aplicación desarrollada con Java y Spring Boot. Contendrá la lógica de negocio, las validaciones y la API REST.
@@ -294,11 +314,11 @@ Los pacientes formarán parte de la información administrada por el sistema, pe
 
 El listado anterior describe los módulos planificados para el sistema. A continuación se distingue el código implementado y subido al repositorio del trabajo que aún está en desarrollo:
 
-| Módulo | Estado al 15/09/2026 | Ubicación en el repositorio |
+| Módulo | Estado al 22/09/2026 | Ubicación en el repositorio |
 | --- | --- | --- |
 | Pacientes | Implementado, probado e integrado en `main`. | `backend/src/main/java/com/clinica/medica/paciente/` |
 | Profesionales | Código inicial subido a la rama de Fiorella; pendiente de ajustes, pruebas e integración en `main`. | `backend/src/main/java/com/clinica/medica/profesional/` en `feature/profesionales-fiorella` |
-| Especialidades | Código subido a la rama de Valentina; probado con Postman, pendiente de integración en `main`. | `backend/src/main/java/com/clinica/medica/especialidad/` en `feature/especialidades-frontend-valentina` |
+| Especialidades | Backend y frontend integrados en `main`; endpoints verificados manualmente con Postman. Pruebas automatizadas pendientes. | `backend/src/main/java/com/clinica/medica/especialidad/` y `frontend/` |
 | Horarios, disponibilidad, turnos, agenda y usuarios | Planificados; aún no implementados como módulos funcionales. | Descritos en este README |
 
 La configuración actual de Spring Security permite proteger y probar la API durante el desarrollo. La autenticación con usuarios, roles y JWT descrita en la arquitectura sigue pendiente de implementación.
@@ -317,6 +337,88 @@ La base de datos relacional `clinica_medica` fue diseñada para MySQL y contiene
 | `horarios_atencion` | Registra los días y horarios de atención de cada profesional. |
 | `turnos` | Relaciona pacientes, profesionales, especialidades, fechas, horarios y estados. |
 
+### Diagrama entidad-relación (DER)
+
+El siguiente diagrama representa las entidades principales de la base de datos y las relaciones definidas en `database/schema.sql`.
+
+```mermaid
+erDiagram
+    PACIENTES ||--o{ TURNOS : solicita
+    PROFESIONALES ||--o{ HORARIOS_ATENCION : posee
+    PROFESIONALES ||--o{ PROFESIONAL_ESPECIALIDAD : tiene
+    ESPECIALIDADES ||--o{ PROFESIONAL_ESPECIALIDAD : incluye
+    PROFESIONAL_ESPECIALIDAD ||--o{ TURNOS : habilita
+    PROFESIONALES o|--o{ USUARIOS : vincula
+
+    PACIENTES {
+        BIGINT id PK
+        VARCHAR nombre
+        VARCHAR apellido
+        VARCHAR dni UK
+        DATE fecha_nacimiento
+        VARCHAR telefono
+        VARCHAR email
+        VARCHAR direccion
+        BOOLEAN activo
+        DATETIME fecha_alta
+    }
+
+    PROFESIONALES {
+        BIGINT id PK
+        VARCHAR nombre
+        VARCHAR apellido
+        VARCHAR matricula UK
+        VARCHAR telefono
+        VARCHAR email
+        BOOLEAN activo
+        DATETIME fecha_alta
+    }
+
+    ESPECIALIDADES {
+        BIGINT id PK
+        VARCHAR nombre UK
+        VARCHAR descripcion
+        BOOLEAN activo
+    }
+
+    PROFESIONAL_ESPECIALIDAD {
+        BIGINT profesional_id PK, FK
+        BIGINT especialidad_id PK, FK
+    }
+
+    HORARIOS_ATENCION {
+        BIGINT id PK
+        BIGINT profesional_id FK
+        ENUM dia_semana
+        TIME hora_desde
+        TIME hora_hasta
+        INT duracion_turno
+        BOOLEAN activo
+    }
+
+    TURNOS {
+        BIGINT id PK
+        BIGINT paciente_id FK
+        BIGINT profesional_id FK
+        BIGINT especialidad_id FK
+        DATE fecha
+        TIME hora_inicio
+        TIME hora_fin
+        ENUM estado
+        VARCHAR observaciones
+        DATETIME fecha_creacion
+    }
+
+    USUARIOS {
+        BIGINT id PK
+        VARCHAR nombre_usuario UK
+        VARCHAR contrasena_hash
+        ENUM rol
+        BIGINT profesional_id FK
+        BOOLEAN activo
+    }
+```
+
 ### Relaciones principales
 
 - Un paciente puede tener varios turnos.
@@ -326,6 +428,80 @@ La base de datos relacional `clinica_medica` fue diseñada para MySQL y contiene
 - Un profesional puede tener varios horarios de atención.
 - Cada turno corresponde a un paciente, un profesional y una especialidad.
 - La base de datos impide dos turnos con el mismo profesional, fecha y hora de inicio. La validación de intervalos superpuestos y la reutilización de horarios de turnos cancelados quedan pendientes para el módulo de turnos.
+
+### Reglas de negocio
+
+Las siguientes reglas definen el funcionamiento esperado del sistema. Algunas ya están contempladas en la base de datos o en los módulos implementados, mientras que otras deberán aplicarse al desarrollar los módulos pendientes.
+
+1. **RN01 – Identificación de pacientes:** no pueden existir dos pacientes con el mismo DNI.
+
+2. **RN02 – Identificación de profesionales:** no pueden existir dos profesionales con la misma matrícula.
+
+3. **RN03 – Especialidades únicas:** no pueden registrarse dos especialidades con el mismo nombre.
+
+4. **RN04 – Asociación profesional-especialidad:** un turno solo puede asignarse a un profesional que tenga habilitada la especialidad seleccionada.
+
+5. **RN05 – Horarios de atención:** la hora de finalización de un horario de atención debe ser posterior a la hora de inicio y la duración de cada turno debe ser mayor que cero.
+
+6. **RN06 – Disponibilidad del profesional:** los turnos deben asignarse dentro de los días y horarios de atención establecidos para el profesional.
+
+7. **RN07 – Superposición de turnos:** no pueden existir turnos superpuestos para un mismo profesional en una misma fecha. Actualmente, la base de datos impide que dos turnos tengan igual profesional, fecha y hora de inicio; la validación completa de intervalos deberá implementarse en el módulo de turnos.
+
+8. **RN08 – Estados de los turnos:** los estados permitidos son `PENDIENTE`, `ATENDIDO`, `CANCELADO` y `AUSENTE`.
+
+9. **RN09 – Transiciones de estado:** un turno `PENDIENTE` puede pasar a `ATENDIDO`, `CANCELADO` o `AUSENTE`. Los turnos que se encuentren en alguno de estos tres estados finales no podrán cambiar nuevamente de estado.
+
+10. **RN10 – Turnos cancelados:** un turno cancelado deja disponible nuevamente su fecha y franja horaria. Esta validación deberá implementarse en el módulo de turnos.
+
+11. **RN11 – Baja lógica:** la baja de pacientes, profesionales y especialidades debe realizarse cambiando su estado a inactivo, sin eliminar físicamente sus registros.
+
+12. **RN12 – Registros inactivos:** no podrán asignarse nuevos turnos a pacientes, profesionales o especialidades que estén inactivos.
+
+13. **RN13 – Acceso por roles:** los usuarios accederán únicamente a las funciones autorizadas para su rol: `ADMINISTRADOR`, `RECEPCIONISTA` o `PROFESIONAL`.
+
+14. **RN14 – Agenda profesional:** los usuarios con rol `PROFESIONAL` solo podrán consultar la agenda correspondiente al profesional asociado con su cuenta.
+
+### Requisitos funcionales
+
+Los requisitos funcionales describen las operaciones que deberá ofrecer el sistema. Su estado permite distinguir las funcionalidades implementadas de las que todavía están pendientes.
+
+| Código | Requisito | Estado actual |
+| --- | --- | --- |
+| RF01 | El sistema debe permitir registrar pacientes con nombre, apellido, DNI, fecha de nacimiento, teléfono, correo electrónico y dirección. | Implementado y probado |
+| RF02 | El sistema debe permitir consultar y actualizar los datos de los pacientes activos. | Implementado y probado |
+| RF03 | El sistema debe permitir realizar la baja lógica de un paciente. | Implementado y probado |
+| RF04 | El sistema debe impedir el registro de dos pacientes con el mismo DNI. | Implementado y probado |
+| RF05 | El sistema debe permitir registrar, consultar, actualizar y dar de baja lógicamente a los profesionales. | Pendiente de integración en `main` |
+| RF06 | El sistema debe impedir el registro de dos profesionales con la misma matrícula. | Pendiente de integración en `main` |
+| RF07 | El sistema debe permitir registrar, consultar, actualizar y dar de baja lógicamente las especialidades. | Integrado en `main` y verificado con Postman |
+| RF08 | El sistema debe permitir asociar uno o más profesionales con las especialidades que brindan. | Pendiente |
+| RF09 | El sistema debe permitir definir los días, horarios de atención y duración de los turnos de cada profesional. | Pendiente |
+| RF10 | El sistema debe permitir consultar la disponibilidad de un profesional para una fecha determinada. | Pendiente |
+| RF11 | El sistema debe permitir registrar un turno para un paciente, profesional, especialidad, fecha y horario. | Pendiente |
+| RF12 | El sistema debe impedir la creación de turnos superpuestos para un mismo profesional. | Pendiente |
+| RF13 | El sistema debe permitir consultar los turnos registrados en una agenda centralizada. | Pendiente |
+| RF14 | El sistema debe permitir cancelar o reprogramar un turno. | Pendiente |
+| RF15 | El sistema debe permitir actualizar el estado de un turno a `PENDIENTE`, `ATENDIDO`, `CANCELADO` o `AUSENTE`, respetando las transiciones definidas. | Pendiente |
+| RF16 | El sistema debe permitir que un profesional consulte únicamente su propia agenda. | Pendiente |
+| RF17 | El sistema debe permitir que un usuario inicie sesión con sus credenciales. | Pendiente |
+| RF18 | El sistema debe restringir las funcionalidades según los roles `ADMINISTRADOR`, `RECEPCIONISTA` y `PROFESIONAL`. | Pendiente |
+
+### Requisitos no funcionales
+
+Los requisitos no funcionales establecen condiciones de seguridad, calidad, compatibilidad y mantenimiento del sistema.
+
+| Código | Requisito | Estado actual |
+| --- | --- | --- |
+| RNF01 | Las contraseñas deben almacenarse mediante un hash generado con BCrypt y nunca como texto plano. | Pendiente |
+| RNF02 | La autenticación debe utilizar Spring Security y tokens JWT. | Pendiente |
+| RNF03 | El acceso a los endpoints debe estar restringido según el rol del usuario. | Pendiente |
+| RNF04 | El backend debe validar los datos recibidos mediante Bean Validation y devolver códigos HTTP apropiados. | Parcialmente implementado |
+| RNF05 | El frontend debe desarrollarse con React y TypeScript y comunicarse con el backend mediante una API REST. | Estructura inicial integrada |
+| RNF06 | La información debe almacenarse en una base de datos MySQL manteniendo la integridad de sus relaciones. | Esquema diseñado |
+| RNF07 | El sistema debe utilizar una arquitectura por capas que separe controladores, servicios, repositorios, entidades y DTO. | Implementado en los módulos actuales |
+| RNF08 | El código y la documentación deben mantenerse versionados mediante Git y GitHub. | Implementado |
+| RNF09 | Los módulos deben contar con pruebas que permitan verificar sus reglas principales. | Pacientes cuenta con pruebas automatizadas; Especialidades fue verificado manualmente con Postman y tiene pruebas automatizadas pendientes; los demás módulos están pendientes |
+| RNF10 | La configuración CORS debe permitir únicamente la comunicación con los orígenes autorizados del frontend. | Pendiente |
 
 ### Archivos de base de datos
 
