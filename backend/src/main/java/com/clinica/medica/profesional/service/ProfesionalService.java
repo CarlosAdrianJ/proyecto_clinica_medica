@@ -1,6 +1,10 @@
-package com.clinica.medica.profesional;
+package com.clinica.medica.profesional.service;
+
+import com.clinica.medica.profesional.model.Profesional;
 
 import org.springframework.stereotype.Service;
+
+import com.clinica.medica.profesional.repository.ProfesionalRepository;
 
 import java.util.List;
 import java.util.Optional;

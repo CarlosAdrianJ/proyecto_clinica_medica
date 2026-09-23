@@ -1,4 +1,7 @@
-package com.clinica.medica.profesional;
+package com.clinica.medica.profesional.controller;
+
+import com.clinica.medica.profesional.model.Profesional;
+import com.clinica.medica.profesional.service.ProfesionalService;
 
 import jakarta.validation.Valid;
 

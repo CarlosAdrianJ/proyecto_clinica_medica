@@ -1,4 +1,4 @@
-package com.clinica.medica.profesional;
+package com.clinica.medica.profesional.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;

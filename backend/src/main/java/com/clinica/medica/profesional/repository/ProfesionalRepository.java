@@ -1,4 +1,5 @@
-package com.clinica.medica.profesional;
+package com.clinica.medica.profesional.repository;
+import com.clinica.medica.profesional.model.Profesional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
