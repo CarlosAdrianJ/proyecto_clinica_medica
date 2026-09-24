@@ -110,10 +110,10 @@ aplicación.
 
 Estas funcionalidades podrán considerarse como posibles ampliaciones futuras del sistema.
 
-La primera versión se considerará funcional cuando permita realizar de manera centralizada - el
-circuito básico de gestión de un turno:- registrar los datos necesarios -consultar la
-disponibilidad de un profesional - asignar un turno sin generar superposiciones y
-posteriormente consultarlo - cancelarlo- reprogramarlo o actualizar su estado.
+La primera versión se considerará funcional cuando permita realizar de manera centralizada el
+circuito básico de gestión de un turno: registrar los datos necesarios, consultar la
+disponibilidad de un profesional, asignar un turno sin generar superposiciones y
+posteriormente consultarlo, cancelarlo, reprogramarlo o actualizar su estado.
 
 ## Stack Tecnológico
 
@@ -143,7 +143,7 @@ entorno accesible para la demostración del proyecto.
 
 ## Estado del proyecto
 
-El proyecto se encuentra en etapa de desarrollo. Los módulos de pacientes y especialidades están integrados en `main`, el frontend cuenta con una estructura inicial y los módulos restantes continúan pendientes o en desarrollo.
+El proyecto se encuentra en etapa de desarrollo. Los módulos de pacientes, profesionales y especialidades están integrados en `main`, el frontend cuenta con una estructura inicial y los módulos restantes continúan pendientes o en desarrollo.
 
 ## Cambios respecto a la primera entrega
 
@@ -317,7 +317,7 @@ El listado anterior describe los módulos planificados para el sistema. A contin
 | Módulo | Estado al 22/09/2026 | Ubicación en el repositorio |
 | --- | --- | --- |
 | Pacientes | Implementado, probado e integrado en `main`. | `backend/src/main/java/com/clinica/medica/paciente/` |
-| Profesionales | Código inicial subido a la rama de Fiorella; pendiente de ajustes, pruebas e integración en `main`. | `backend/src/main/java/com/clinica/medica/profesional/` en `feature/profesionales-fiorella` |
+| Profesionales | Implementado, probado e integrado en `main`; endpoints verificados manualmente con Postman. | `backend/src/main/java/com/clinica/medica/profesional/` |
 | Especialidades | Backend y frontend integrados en `main`; endpoints verificados manualmente con Postman. Pruebas automatizadas pendientes. | `backend/src/main/java/com/clinica/medica/especialidad/` y `frontend/` |
 | Horarios, disponibilidad, turnos, agenda y usuarios | Planificados; aún no implementados como módulos funcionales. | Descritos en este README |
 
@@ -471,8 +471,8 @@ Los requisitos funcionales describen las operaciones que deberá ofrecer el sist
 | RF02 | El sistema debe permitir consultar y actualizar los datos de los pacientes activos. | Implementado y probado |
 | RF03 | El sistema debe permitir realizar la baja lógica de un paciente. | Implementado y probado |
 | RF04 | El sistema debe impedir el registro de dos pacientes con el mismo DNI. | Implementado y probado |
-| RF05 | El sistema debe permitir registrar, consultar, actualizar y dar de baja lógicamente a los profesionales. | Pendiente de integración en `main` |
-| RF06 | El sistema debe impedir el registro de dos profesionales con la misma matrícula. | Pendiente de integración en `main` |
+| RF05 | El sistema debe permitir registrar, consultar, actualizar y dar de baja lógicamente a los profesionales. | Implementado, integrado en `main` y verificado con Postman |
+| RF06 | El sistema debe impedir el registro de dos profesionales con la misma matrícula. | Implementado, integrado en `main` y verificado con Postman |
 | RF07 | El sistema debe permitir registrar, consultar, actualizar y dar de baja lógicamente las especialidades. | Integrado en `main` y verificado con Postman |
 | RF08 | El sistema debe permitir asociar uno o más profesionales con las especialidades que brindan. | Pendiente |
 | RF09 | El sistema debe permitir definir los días, horarios de atención y duración de los turnos de cada profesional. | Pendiente |
