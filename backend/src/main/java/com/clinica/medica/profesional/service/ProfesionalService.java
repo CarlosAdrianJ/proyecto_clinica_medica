@@ -1,17 +1,17 @@
 package com.clinica.medica.profesional.service;
 
+import com.clinica.medica.profesional.dto.ProfesionalRequest;
+import com.clinica.medica.profesional.dto.ProfesionalResponse;
 import com.clinica.medica.profesional.model.Profesional;
-
-import org.springframework.stereotype.Service;
-
 import com.clinica.medica.profesional.repository.ProfesionalRepository;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Optional;
 
-
-@Service 
-
+@Service
 public class ProfesionalService {
 
     private final ProfesionalRepository profesionalRepository;
@@ -20,51 +20,96 @@ public class ProfesionalService {
         this.profesionalRepository = profesionalRepository;
     }
 
-    public Profesional crearProfesional(Profesional profesional) {
-        if (profesionalRepository.existsByMatricula(profesional.getMatricula())) {
-            throw new RuntimeException("Ya existe un profesional con esa matricula");
+    @Transactional(readOnly = true)
+    public List<ProfesionalResponse> listar() {
+        return profesionalRepository.findAll()
+                .stream()
+                .map(this::convertirAResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public ProfesionalResponse buscarPorId(Long id) {
+        Profesional profesional = obtenerProfesional(id);
+        return convertirAResponse(profesional);
+    }
+
+    @Transactional(readOnly = true)
+    public ProfesionalResponse buscarPorMatricula(String matricula) {
+        Profesional profesional = profesionalRepository.findByMatricula(matricula)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Profesional no encontrado"
+                ));
+
+        return convertirAResponse(profesional);
+    }
+
+    @Transactional
+    public ProfesionalResponse crear(ProfesionalRequest request) {
+        if (profesionalRepository.existsByMatricula(request.matricula())) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Ya existe un profesional con esa matrícula"
+            );
         }
 
-        return profesionalRepository.save(profesional);
-    
-    }
-    public List<Profesional> listarProfesionales() {
-        return profesionalRepository.findAll();
-    }
+        Profesional profesional = new Profesional();
+        actualizarDatos(profesional, request);
 
-    public Profesional buscarPorId(Long id) {
-        return profesionalRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Profesional no encontrado"));
+        return convertirAResponse(profesionalRepository.save(profesional));
     }
 
-    public Optional<Profesional> buscarPorMatricula(String matricula) {
-        return profesionalRepository.findByMatricula(matricula);
-    }
+    @Transactional
+    public ProfesionalResponse actualizar(Long id, ProfesionalRequest request) {
+        Profesional profesional = obtenerProfesional(id);
 
-    public Profesional modificarProfesional(Long id, Profesional datosActualizados) {
-        Profesional profesional = buscarPorId(id);
-
-       if (!profesional.getMatricula().equals(datosActualizados.getMatricula())
-        && profesionalRepository.existsByMatricula(datosActualizados.getMatricula())) {
-            throw new RuntimeException("Ya existe un profesional con esa matricula");
+        if (!profesional.getMatricula().equals(request.matricula())
+                && profesionalRepository.existsByMatricula(request.matricula())) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Ya existe otro profesional con esa matrícula"
+            );
         }
 
-        profesional.setNombre(datosActualizados.getNombre());
-        profesional.setApellido(datosActualizados.getApellido());
-        profesional.setMatricula(datosActualizados.getMatricula());
-        profesional.setTelefono(datosActualizados.getTelefono());
-        profesional.setEmail(datosActualizados.getEmail());
+        actualizarDatos(profesional, request);
 
-        return profesionalRepository.save(profesional);
+        return convertirAResponse(profesionalRepository.save(profesional));
     }
 
-    public Profesional darDeBaja(Long id) {
-        Profesional profesional = buscarPorId(id);
-
+    @Transactional
+    public void eliminar(Long id) {
+        Profesional profesional = obtenerProfesional(id);
         profesional.setActivo(false);
-
-        return profesionalRepository.save(profesional);
+        profesionalRepository.save(profesional);
     }
 
+    private Profesional obtenerProfesional(Long id) {
+        return profesionalRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Profesional no encontrado"
+                ));
+    }
 
+    private void actualizarDatos(Profesional profesional, ProfesionalRequest request) {
+        profesional.setNombre(request.nombre().trim());
+        profesional.setApellido(request.apellido().trim());
+        profesional.setMatricula(request.matricula().trim());
+        profesional.setTelefono(request.telefono());
+        profesional.setEmail(request.email());
+    }
+
+    private ProfesionalResponse convertirAResponse(Profesional profesional) {
+        return new ProfesionalResponse(
+                profesional.getId(),
+                profesional.getNombre(),
+                profesional.getApellido(),
+                profesional.getMatricula(),
+                profesional.getTelefono(),
+                profesional.getEmail(),
+                profesional.getActivo(),
+                profesional.getFechaAlta()
+        );
+    }
 }

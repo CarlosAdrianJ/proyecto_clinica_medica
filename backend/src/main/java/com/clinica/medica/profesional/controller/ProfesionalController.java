@@ -1,78 +1,60 @@
 package com.clinica.medica.profesional.controller;
 
-import com.clinica.medica.profesional.model.Profesional;
+import com.clinica.medica.profesional.dto.ProfesionalRequest;
+import com.clinica.medica.profesional.dto.ProfesionalResponse;
 import com.clinica.medica.profesional.service.ProfesionalService;
-
 import jakarta.validation.Valid;
-
-
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
-@RestController 
+@RestController
 @RequestMapping("/api/profesionales")
-
 public class ProfesionalController {
 
     private final ProfesionalService profesionalService;
-    
+
     public ProfesionalController(ProfesionalService profesionalService) {
         this.profesionalService = profesionalService;
     }
 
-    @PostMapping 
-    public ResponseEntity<Profesional> crearProfesional(
-        @Valid @RequestBody Profesional profesional) {
-
-            Profesional nuevoProfesional =
-                profesionalService.crearProfesional(profesional);
-
-            return ResponseEntity.ok(nuevoProfesional);
-        }
-
-    @GetMapping 
-    public ResponseEntity<List<Profesional>> listarProfesionales() {
-        return ResponseEntity.ok(
-            profesionalService.listarProfesionales()
-        );
+    @GetMapping
+    public List<ProfesionalResponse> listar() {
+        return profesionalService.listar();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Profesional> buscarPorId(@PathVariable Long id) {
-
-            return ResponseEntity.ok(
-                profesionalService.buscarPorId(id)
-            );
-        }
-
-    
-    @PutMapping ("/{id}")
-    public ResponseEntity<Profesional> modificarProfesional(
-        @PathVariable Long id,
-        @Valid @RequestBody Profesional profesional) {
-
-            return ResponseEntity.ok(
-                profesionalService.modificarProfesional(id, profesional)
-            );
-        }
+    public ProfesionalResponse buscarPorId(@PathVariable Long id) {
+        return profesionalService.buscarPorId(id);
+    }
 
     @GetMapping("/matricula/{matricula}")
-    public ResponseEntity<Optional<Profesional>> buscarPorMatricula(
-        @PathVariable String matricula) {
+    public ProfesionalResponse buscarPorMatricula(@PathVariable String matricula) {
+        return profesionalService.buscarPorMatricula(matricula);
+    }
 
-            return ResponseEntity.ok(
-                profesionalService.buscarPorMatricula(matricula)
-            );
-        }
+    @PostMapping
+    public ResponseEntity<ProfesionalResponse> crear(
+            @Valid @RequestBody ProfesionalRequest request
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(profesionalService.crear(request));
+    }
+
+    @PutMapping("/{id}")
+    public ProfesionalResponse actualizar(
+            @PathVariable Long id,
+            @Valid @RequestBody ProfesionalRequest request
+    ) {
+        return profesionalService.actualizar(id, request);
+    }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Profesional> darDeBaja(@PathVariable Long id) {
-        return ResponseEntity.ok(
-            profesionalService.darDeBaja(id)
-        );
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+        profesionalService.eliminar(id);
+        return ResponseEntity.noContent().build();
     }
-    
 }
