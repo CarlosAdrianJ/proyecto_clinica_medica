@@ -476,47 +476,9 @@ Las siguientes reglas definen el funcionamiento esperado del sistema. Algunas ya
 
 14. **RN14 – Agenda profesional:** los usuarios con rol `PROFESIONAL` solo podrán consultar la agenda correspondiente al profesional asociado con su cuenta.
 
-### Requisitos funcionales
+### Requisitos del sistema
 
-Los requisitos funcionales describen las operaciones que deberá ofrecer el sistema. Su estado permite distinguir las funcionalidades implementadas de las que todavía están pendientes.
-
-| Código | Requisito | Estado actual |
-| --- | --- | --- |
-| RF01 | El sistema debe permitir registrar pacientes con nombre, apellido, DNI, fecha de nacimiento, teléfono, correo electrónico y dirección. | Implementado y probado |
-| RF02 | El sistema debe permitir consultar y actualizar los datos de los pacientes activos. | Implementado y probado |
-| RF03 | El sistema debe permitir realizar la baja lógica de un paciente. | Implementado y probado |
-| RF04 | El sistema debe impedir el registro de dos pacientes con el mismo DNI. | Implementado y probado |
-| RF05 | El sistema debe permitir registrar, consultar, actualizar y dar de baja lógicamente a los profesionales. | Implementado, integrado en `main` y verificado con Postman |
-| RF06 | El sistema debe impedir el registro de dos profesionales con la misma matrícula. | Implementado, integrado en `main` y verificado con Postman |
-| RF07 | El sistema debe permitir registrar, consultar, actualizar y dar de baja lógicamente las especialidades. | Integrado en `main` y verificado con Postman |
-| RF08 | El sistema debe permitir asociar uno o más profesionales con las especialidades que brindan. | Pendiente |
-| RF09 | El sistema debe permitir definir los días, horarios de atención y duración de los turnos de cada profesional. | Pendiente |
-| RF10 | El sistema debe permitir consultar la disponibilidad de un profesional para una fecha determinada. | Pendiente |
-| RF11 | El sistema debe permitir registrar un turno para un paciente, profesional, especialidad, fecha y horario. | Pendiente |
-| RF12 | El sistema debe impedir la creación de turnos superpuestos para un mismo profesional. | Pendiente |
-| RF13 | El sistema debe permitir consultar los turnos registrados en una agenda centralizada. | Pendiente |
-| RF14 | El sistema debe permitir cancelar o reprogramar un turno. | Pendiente |
-| RF15 | El sistema debe permitir actualizar el estado de un turno a `PENDIENTE`, `ATENDIDO`, `CANCELADO` o `AUSENTE`, respetando las transiciones definidas. | Pendiente |
-| RF16 | El sistema debe permitir que un profesional consulte únicamente su propia agenda. | Pendiente |
-| RF17 | El sistema debe permitir que un usuario inicie sesión con sus credenciales. | Pendiente |
-| RF18 | El sistema debe restringir las funcionalidades según los roles `ADMINISTRADOR`, `RECEPCIONISTA` y `PROFESIONAL`. | Pendiente |
-
-### Requisitos no funcionales
-
-Los requisitos no funcionales establecen condiciones de seguridad, calidad, compatibilidad y mantenimiento del sistema.
-
-| Código | Requisito | Estado actual |
-| --- | --- | --- |
-| RNF01 | Las contraseñas deben almacenarse mediante un hash generado con BCrypt y nunca como texto plano. | Pendiente |
-| RNF02 | La autenticación debe utilizar Spring Security y tokens JWT. | Pendiente |
-| RNF03 | El acceso a los endpoints debe estar restringido según el rol del usuario. | Pendiente |
-| RNF04 | El backend debe validar los datos recibidos mediante Bean Validation y devolver códigos HTTP apropiados. | Parcialmente implementado |
-| RNF05 | El frontend debe desarrollarse con React y TypeScript y comunicarse con el backend mediante una API REST. | Estructura inicial integrada |
-| RNF06 | La información debe almacenarse en una base de datos MySQL manteniendo la integridad de sus relaciones. | Esquema diseñado |
-| RNF07 | El sistema debe utilizar una arquitectura por capas que separe controladores, servicios, repositorios, entidades y DTO. | Implementado en los módulos actuales |
-| RNF08 | El código y la documentación deben mantenerse versionados mediante Git y GitHub. | Implementado |
-| RNF09 | Los módulos deben contar con pruebas que permitan verificar sus reglas principales. | Pacientes cuenta con pruebas automatizadas; Especialidades fue verificado manualmente con Postman y tiene pruebas automatizadas pendientes; los demás módulos están pendientes |
-| RNF10 | La configuración CORS debe permitir únicamente la comunicación con los orígenes autorizados del frontend. | Pendiente |
+Los requisitos funcionales y no funcionales fueron formalizados mediante códigos trazables y se encuentran en [docs/requisitos.md](docs/requisitos.md).
 
 ### Archivos de base de datos
 
