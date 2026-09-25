@@ -145,6 +145,21 @@ entorno accesible para la demostración del proyecto.
 
 El proyecto se encuentra en etapa de desarrollo. Los módulos de pacientes, profesionales y especialidades están integrados en `main`, el frontend cuenta con una estructura inicial y los módulos restantes continúan pendientes o en desarrollo.
 
+## Documentación del proyecto
+
+La documentación correspondiente al análisis y diseño se encuentra organizada en la carpeta `docs`:
+
+- [Diagrama entidad-relación](docs/der.md)
+- [Listado de módulos y prioridades](docs/listado-modulos.md)
+- [Arquitectura del proyecto](docs/arquitectura.md)
+- [Requisitos funcionales y no funcionales](docs/requisitos.md)
+- [Reglas de negocio](docs/reglas-negocio.md)
+
+Los scripts de creación de la base de datos y los datos de ejemplo se encuentran en la carpeta `database`:
+
+- [Esquema de la base de datos](database/schema.sql)
+- [Datos de prueba](database/datos_pruebas.sql)
+
 ## Cambios respecto a la primera entrega
 
 A partir de las observaciones recibidas en la primera entrega se realizaron los siguientes ajustes:
