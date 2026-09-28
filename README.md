@@ -110,10 +110,10 @@ aplicación.
 
 Estas funcionalidades podrán considerarse como posibles ampliaciones futuras del sistema.
 
-La primera versión se considerará funcional cuando permita realizar de manera centralizada - el
-circuito básico de gestión de un turno:- registrar los datos necesarios -consultar la
-disponibilidad de un profesional - asignar un turno sin generar superposiciones y
-posteriormente consultarlo - cancelarlo- reprogramarlo o actualizar su estado.
+La primera versión se considerará funcional cuando permita realizar de manera centralizada el
+circuito básico de gestión de un turno: registrar los datos necesarios, consultar la
+disponibilidad de un profesional, asignar un turno sin generar superposiciones y
+posteriormente consultarlo, cancelarlo, reprogramarlo o actualizar su estado.
 
 ## Stack Tecnológico
 
@@ -143,13 +143,48 @@ entorno accesible para la demostración del proyecto.
 
 ## Estado del proyecto
 
-Proyecto en etapa inicial de planificación y organización.
+El proyecto se encuentra en etapa de desarrollo. Los módulos de pacientes, profesionales y especialidades están integrados en `main`, el frontend cuenta con una estructura inicial y los módulos restantes continúan pendientes o en desarrollo.
+
+## Documentación del proyecto
+
+La documentación correspondiente al análisis y diseño se encuentra organizada en la carpeta `docs`:
+
+- [Diagrama entidad-relación](docs/der.md)
+- [Listado de módulos y prioridades](docs/listado-modulos.md)
+- [Arquitectura del proyecto](docs/arquitectura.md)
+- [Requisitos funcionales y no funcionales](docs/requisitos.md)
+- [Reglas de negocio](docs/reglas-negocio.md)
+
+Los scripts de creación de la base de datos y los datos de ejemplo se encuentran en la carpeta `database`:
+
+- [Esquema de la base de datos](database/schema.sql)
+- [Datos de prueba](database/datos_pruebas.sql)
+
+## Cambios respecto a la primera entrega
+
+A partir de las observaciones recibidas en la primera entrega se realizaron los siguientes ajustes:
+
+| Observación recibida | Modificación realizada | Estado |
+| --- | --- | --- |
+| Especificar con mayor precisión las tecnologías utilizadas para desarrollar el frontend y sus estilos. | Se definió el uso de React con TypeScript y Vite, junto con React-Bootstrap, Bootstrap y hojas CSS propias. También se explicó que el frontend se comunicará con el backend mediante una API REST. | Documentación corregida y estructura inicial del frontend integrada en `main`. |
+| Ampliar la definición de seguridad y control de acceso del sistema. | Se documentó el uso previsto de Spring Security, JWT, BCrypt, CORS y Bean Validation. También se definieron los roles `ADMINISTRADOR`, `RECEPCIONISTA` y `PROFESIONAL`, junto con sus responsabilidades generales. | Diseño documentado; autenticación con JWT y control definitivo por roles pendientes de implementación. |
 
 ## 3. Arquitectura y módulos
 
 ### Arquitectura del sistema
 
 El sistema utilizará una arquitectura cliente-servidor dividida en frontend, backend y base de datos.
+
+#### Diagrama de arquitectura
+
+```mermaid
+flowchart TD
+    A["Frontend: React + TypeScript"] -->|API REST| B["Controllers: Spring Boot"]
+    B --> C["Services: lógica de negocio"]
+    C --> D["Repositories: Spring Data JPA"]
+    D --> E[("Base de datos MySQL")]
+    F["Seguridad prevista: Spring Security + JWT"] -.-> B
+```
 
 -  **Frontend:** interfaz desarrollada con React, TypeScript y Vite. Para los estilos se utilizarán React-Bootstrap, Bootstrap y hojas CSS propias. Permitirá que el personal administrativo utilice las funciones del sistema y se comunicará con el backend mediante una API REST.
 - **Backend:** aplicación desarrollada con Java y Spring Boot. Contendrá la lógica de negocio, las validaciones y la API REST.
@@ -294,11 +329,11 @@ Los pacientes formarán parte de la información administrada por el sistema, pe
 
 El listado anterior describe los módulos planificados para el sistema. A continuación se distingue el código implementado y subido al repositorio del trabajo que aún está en desarrollo:
 
-| Módulo | Estado al 15/09/2026 | Ubicación en el repositorio |
+| Módulo | Estado al 22/09/2026 | Ubicación en el repositorio |
 | --- | --- | --- |
 | Pacientes | Implementado, probado e integrado en `main`. | `backend/src/main/java/com/clinica/medica/paciente/` |
-| Profesionales | Código inicial subido a la rama de Fiorella; pendiente de ajustes, pruebas e integración en `main`. | `backend/src/main/java/com/clinica/medica/profesional/` en `feature/profesionales-fiorella` |
-| Especialidades | Código subido a la rama de Valentina; probado con Postman, pendiente de integración en `main`. | `backend/src/main/java/com/clinica/medica/especialidad/` en `feature/especialidades-frontend-valentina` |
+| Profesionales | Implementado, probado e integrado en `main`; endpoints verificados manualmente con Postman. | `backend/src/main/java/com/clinica/medica/profesional/` |
+| Especialidades | Backend y frontend integrados en `main`; endpoints verificados manualmente con Postman. Pruebas automatizadas pendientes. | `backend/src/main/java/com/clinica/medica/especialidad/` y `frontend/` |
 | Horarios, disponibilidad, turnos, agenda y usuarios | Planificados; aún no implementados como módulos funcionales. | Descritos en este README |
 
 La configuración actual de Spring Security permite proteger y probar la API durante el desarrollo. La autenticación con usuarios, roles y JWT descrita en la arquitectura sigue pendiente de implementación.
@@ -317,6 +352,88 @@ La base de datos relacional `clinica_medica` fue diseñada para MySQL y contiene
 | `horarios_atencion` | Registra los días y horarios de atención de cada profesional. |
 | `turnos` | Relaciona pacientes, profesionales, especialidades, fechas, horarios y estados. |
 
+### Diagrama entidad-relación (DER)
+
+El siguiente diagrama representa las entidades principales de la base de datos y las relaciones definidas en `database/schema.sql`.
+
+```mermaid
+erDiagram
+    PACIENTES ||--o{ TURNOS : solicita
+    PROFESIONALES ||--o{ HORARIOS_ATENCION : posee
+    PROFESIONALES ||--o{ PROFESIONAL_ESPECIALIDAD : tiene
+    ESPECIALIDADES ||--o{ PROFESIONAL_ESPECIALIDAD : incluye
+    PROFESIONAL_ESPECIALIDAD ||--o{ TURNOS : habilita
+    PROFESIONALES o|--o{ USUARIOS : vincula
+
+    PACIENTES {
+        BIGINT id PK
+        VARCHAR nombre
+        VARCHAR apellido
+        VARCHAR dni UK
+        DATE fecha_nacimiento
+        VARCHAR telefono
+        VARCHAR email
+        VARCHAR direccion
+        BOOLEAN activo
+        DATETIME fecha_alta
+    }
+
+    PROFESIONALES {
+        BIGINT id PK
+        VARCHAR nombre
+        VARCHAR apellido
+        VARCHAR matricula UK
+        VARCHAR telefono
+        VARCHAR email
+        BOOLEAN activo
+        DATETIME fecha_alta
+    }
+
+    ESPECIALIDADES {
+        BIGINT id PK
+        VARCHAR nombre UK
+        VARCHAR descripcion
+        BOOLEAN activo
+    }
+
+    PROFESIONAL_ESPECIALIDAD {
+        BIGINT profesional_id PK, FK
+        BIGINT especialidad_id PK, FK
+    }
+
+    HORARIOS_ATENCION {
+        BIGINT id PK
+        BIGINT profesional_id FK
+        ENUM dia_semana
+        TIME hora_desde
+        TIME hora_hasta
+        INT duracion_turno
+        BOOLEAN activo
+    }
+
+    TURNOS {
+        BIGINT id PK
+        BIGINT paciente_id FK
+        BIGINT profesional_id FK
+        BIGINT especialidad_id FK
+        DATE fecha
+        TIME hora_inicio
+        TIME hora_fin
+        ENUM estado
+        VARCHAR observaciones
+        DATETIME fecha_creacion
+    }
+
+    USUARIOS {
+        BIGINT id PK
+        VARCHAR nombre_usuario UK
+        VARCHAR contrasena_hash
+        ENUM rol
+        BIGINT profesional_id FK
+        BOOLEAN activo
+    }
+```
+
 ### Relaciones principales
 
 - Un paciente puede tener varios turnos.
@@ -326,6 +443,14 @@ La base de datos relacional `clinica_medica` fue diseñada para MySQL y contiene
 - Un profesional puede tener varios horarios de atención.
 - Cada turno corresponde a un paciente, un profesional y una especialidad.
 - La base de datos impide dos turnos con el mismo profesional, fecha y hora de inicio. La validación de intervalos superpuestos y la reutilización de horarios de turnos cancelados quedan pendientes para el módulo de turnos.
+
+### Reglas de negocio
+
+Las reglas de negocio fueron consolidadas mediante códigos únicos y se encuentran en [docs/reglas-negocio.md](docs/reglas-negocio.md).
+
+### Requisitos del sistema
+
+Los requisitos funcionales y no funcionales fueron formalizados mediante códigos trazables y se encuentran en [docs/requisitos.md](docs/requisitos.md).
 
 ### Archivos de base de datos
 
