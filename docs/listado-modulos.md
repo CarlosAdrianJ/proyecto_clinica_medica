@@ -18,7 +18,7 @@ El Sistema de Gestión de Turnos para una Clínica Médica se organizará en mó
 | MOD06 | Turnos | Permitirá registrar, consultar, cancelar y reprogramar turnos, relacionando pacientes, profesionales, especialidades, fechas y horarios. | Alta |
 | MOD07 | Agenda profesional | Permitirá consultar los turnos de un profesional por día, fecha o estado para organizar su atención. | Media |
 | MOD08 | Usuarios y autenticación | Permitirá iniciar sesión y controlar el acceso al sistema según los roles de administrador, recepcionista y profesional. | Alta |
-| MOD09 | Reportes | Permitirá obtener información administrativa sobre turnos, cancelaciones, ausencias y atención por profesional o especialidad. | Baja |
+| MOD09 | Reportes | Ampliación futura, fuera del alcance de la primera versión. Permitirá obtener información administrativa sobre turnos, cancelaciones, ausencias y atención por profesional o especialidad. | Baja |
 
 ## Dependencias entre módulos
 
@@ -26,8 +26,8 @@ El Sistema de Gestión de Turnos para una Clínica Médica se organizará en mó
 - El módulo de turnos depende de pacientes, profesionales, especialidades y disponibilidad.
 - La agenda profesional depende de los turnos registrados.
 - El módulo de usuarios y autenticación controlará el acceso a las funcionalidades según el rol asignado.
-- Los reportes utilizarán la información producida por los demás módulos.
+- En una ampliación futura, los reportes utilizarán la información producida por los demás módulos.
 
 ## Alcance de la primera versión
 
-La primera versión se concentrará en la gestión de pacientes, profesionales, especialidades, horarios, disponibilidad y turnos. La autenticación, la agenda y los reportes podrán completarse progresivamente según el avance del equipo y la validación del tutor.
+La primera versión se concentrará en la gestión de pacientes, profesionales, especialidades, horarios, disponibilidad, turnos, agenda y control de acceso. El módulo de reportes queda fuera del alcance de esta primera versión y se considera una posible ampliación futura.
