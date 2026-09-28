@@ -446,35 +446,7 @@ erDiagram
 
 ### Reglas de negocio
 
-Las siguientes reglas definen el funcionamiento esperado del sistema. Algunas ya están contempladas en la base de datos o en los módulos implementados, mientras que otras deberán aplicarse al desarrollar los módulos pendientes.
-
-1. **RN01 – Identificación de pacientes:** no pueden existir dos pacientes con el mismo DNI.
-
-2. **RN02 – Identificación de profesionales:** no pueden existir dos profesionales con la misma matrícula.
-
-3. **RN03 – Especialidades únicas:** no pueden registrarse dos especialidades con el mismo nombre.
-
-4. **RN04 – Asociación profesional-especialidad:** un turno solo puede asignarse a un profesional que tenga habilitada la especialidad seleccionada.
-
-5. **RN05 – Horarios de atención:** la hora de finalización de un horario de atención debe ser posterior a la hora de inicio y la duración de cada turno debe ser mayor que cero.
-
-6. **RN06 – Disponibilidad del profesional:** los turnos deben asignarse dentro de los días y horarios de atención establecidos para el profesional.
-
-7. **RN07 – Superposición de turnos:** no pueden existir turnos superpuestos para un mismo profesional en una misma fecha. Actualmente, la base de datos impide que dos turnos tengan igual profesional, fecha y hora de inicio; la validación completa de intervalos deberá implementarse en el módulo de turnos.
-
-8. **RN08 – Estados de los turnos:** los estados permitidos son `PENDIENTE`, `ATENDIDO`, `CANCELADO` y `AUSENTE`.
-
-9. **RN09 – Transiciones de estado:** un turno `PENDIENTE` puede pasar a `ATENDIDO`, `CANCELADO` o `AUSENTE`. Los turnos que se encuentren en alguno de estos tres estados finales no podrán cambiar nuevamente de estado.
-
-10. **RN10 – Turnos cancelados:** un turno cancelado deja disponible nuevamente su fecha y franja horaria. Esta validación deberá implementarse en el módulo de turnos.
-
-11. **RN11 – Baja lógica:** la baja de pacientes, profesionales y especialidades debe realizarse cambiando su estado a inactivo, sin eliminar físicamente sus registros.
-
-12. **RN12 – Registros inactivos:** no podrán asignarse nuevos turnos a pacientes, profesionales o especialidades que estén inactivos.
-
-13. **RN13 – Acceso por roles:** los usuarios accederán únicamente a las funciones autorizadas para su rol: `ADMINISTRADOR`, `RECEPCIONISTA` o `PROFESIONAL`.
-
-14. **RN14 – Agenda profesional:** los usuarios con rol `PROFESIONAL` solo podrán consultar la agenda correspondiente al profesional asociado con su cuenta.
+Las reglas de negocio fueron consolidadas mediante códigos únicos y se encuentran en [docs/reglas-negocio.md](docs/reglas-negocio.md).
 
 ### Requisitos del sistema
 
