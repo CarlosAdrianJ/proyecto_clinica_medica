@@ -143,7 +143,7 @@ entorno accesible para la demostración del proyecto.
 
 ## Estado del proyecto
 
-El proyecto se encuentra en etapa de desarrollo. Los módulos de pacientes, profesionales y especialidades están integrados en `main`, el frontend cuenta con una estructura inicial y los módulos restantes continúan pendientes o en desarrollo.
+El proyecto se encuentra en etapa de desarrollo. Los módulos de pacientes, profesionales, especialidades y horarios de atención están integrados en `main`, el frontend cuenta con una estructura inicial y los módulos restantes continúan pendientes o en desarrollo.
 
 ## Documentación del proyecto
 
@@ -329,7 +329,7 @@ Los pacientes formarán parte de la información administrada por el sistema, pe
 
 El listado anterior describe los módulos planificados para el sistema. A continuación se distingue el código implementado y subido al repositorio del trabajo que aún está en desarrollo:
 
-| Módulo | Estado al 22/09/2026 | Ubicación en el repositorio |
+| Módulo | Estado al 28/09/2026 | Ubicación en el repositorio |
 | --- | --- | --- |
 | Pacientes | Implementado, probado e integrado en `main`. | `backend/src/main/java/com/clinica/medica/paciente/` |
 | Profesionales | Implementado, probado e integrado en `main`; endpoints verificados manualmente con Postman. | `backend/src/main/java/com/clinica/medica/profesional/` |
