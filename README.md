@@ -334,7 +334,8 @@ El listado anterior describe los módulos planificados para el sistema. A contin
 | Pacientes | Implementado, probado e integrado en `main`. | `backend/src/main/java/com/clinica/medica/paciente/` |
 | Profesionales | Implementado, probado e integrado en `main`; endpoints verificados manualmente con Postman. | `backend/src/main/java/com/clinica/medica/profesional/` |
 | Especialidades | Backend y frontend integrados en `main`; endpoints verificados manualmente con Postman. Pruebas automatizadas pendientes. | `backend/src/main/java/com/clinica/medica/especialidad/` y `frontend/` |
-| Horarios, disponibilidad, turnos, agenda y usuarios | Planificados; aún no implementados como módulos funcionales. | Descritos en este README |
+| Horarios de atención | Implementado, probado e integrado en `main`; 10 pruebas automatizadas aprobadas y endpoints verificados manualmente con Postman. | `backend/src/main/java/com/clinica/medica/horario/`
+| Disponibilidad, turnos, agenda y usuarios | Planificados; aún no implementados como módulos funcionales. | Descritos en este README |
 
 La configuración actual de Spring Security permite proteger y probar la API durante el desarrollo. La autenticación con usuarios, roles y JWT descrita en la arquitectura sigue pendiente de implementación.
 
