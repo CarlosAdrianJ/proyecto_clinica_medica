@@ -1,10 +1,13 @@
 package com.clinica.medica.profesional.model;
 
+import com.clinica.medica.especialidad.model.Especialidad;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "profesionales")
@@ -39,10 +42,28 @@ public class Profesional {
     @Column(name = "fecha_alta", nullable = false, updatable = false)
     private LocalDateTime fechaAlta = LocalDateTime.now();
 
+    // Relación muchos a muchos entre profesionales y especialidades
+    @ManyToMany
+    @JoinTable(
+            name = "profesional_especialidad",
+            joinColumns = @JoinColumn(name = "profesional_id"),
+            inverseJoinColumns = @JoinColumn(name = "especialidad_id"),
+            uniqueConstraints = @UniqueConstraint(
+                    columnNames = {"profesional_id", "especialidad_id"}
+            )
+    )
+    private Set<Especialidad> especialidades = new HashSet<>();
+
     public Profesional() {
     }
 
-    public Profesional(String nombre, String apellido, String matricula, String telefono, String email) {
+    public Profesional(
+            String nombre,
+            String apellido,
+            String matricula,
+            String telefono,
+            String email
+    ) {
         this.nombre = nombre;
         this.apellido = apellido;
         this.matricula = matricula;
@@ -114,5 +135,13 @@ public class Profesional {
 
     public void setFechaAlta(LocalDateTime fechaAlta) {
         this.fechaAlta = fechaAlta;
+    }
+
+    public Set<Especialidad> getEspecialidades() {
+        return especialidades;
+    }
+
+    public void setEspecialidades(Set<Especialidad> especialidades) {
+        this.especialidades = especialidades;
     }
 }
