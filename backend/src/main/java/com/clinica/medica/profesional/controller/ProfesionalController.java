@@ -57,4 +57,17 @@ public class ProfesionalController {
         profesionalService.eliminar(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{profesionalId}/especialidades/{especialidadId}")
+    public ResponseEntity<Void> asociarEspecialidad(
+            @PathVariable Long profesionalId,
+            @PathVariable Long especialidadId
+    ) {
+        profesionalService.asociarEspecialidad(
+                profesionalId,
+                especialidadId
+        );
+
+        return ResponseEntity.noContent().build();
+    }
 }

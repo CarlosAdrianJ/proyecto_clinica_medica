@@ -1,5 +1,7 @@
 package com.clinica.medica.profesional.service;
 
+import com.clinica.medica.especialidad.model.Especialidad;
+import com.clinica.medica.especialidad.repository.EspecialidadRepository;
 import com.clinica.medica.profesional.dto.ProfesionalRequest;
 import com.clinica.medica.profesional.dto.ProfesionalResponse;
 import com.clinica.medica.profesional.model.Profesional;
@@ -15,9 +17,14 @@ import java.util.List;
 public class ProfesionalService {
 
     private final ProfesionalRepository profesionalRepository;
+    private final EspecialidadRepository especialidadRepository;
 
-    public ProfesionalService(ProfesionalRepository profesionalRepository) {
+    public ProfesionalService(
+            ProfesionalRepository profesionalRepository,
+            EspecialidadRepository especialidadRepository
+    ) {
         this.profesionalRepository = profesionalRepository;
+        this.especialidadRepository = especialidadRepository;
     }
 
     @Transactional(readOnly = true)
@@ -84,6 +91,33 @@ public class ProfesionalService {
         profesionalRepository.save(profesional);
     }
 
+    @Transactional
+    public void asociarEspecialidad(Long profesionalId, Long especialidadId) {
+
+        Profesional profesional = obtenerProfesional(profesionalId);
+
+        Especialidad especialidad = especialidadRepository
+                .findByIdAndActivoTrue(especialidadId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Especialidad no encontrada"
+                ));
+
+        boolean yaAsociada = profesional.getEspecialidades()
+                .stream()
+                .anyMatch(e -> e.getId().equals(especialidadId));
+
+        if (yaAsociada) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "El profesional ya está asociado a esa especialidad"
+            );
+        }
+
+        profesional.getEspecialidades().add(especialidad);
+        profesionalRepository.save(profesional);
+    }
+
     private Profesional obtenerProfesional(Long id) {
         return profesionalRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(
@@ -92,7 +126,10 @@ public class ProfesionalService {
                 ));
     }
 
-    private void actualizarDatos(Profesional profesional, ProfesionalRequest request) {
+    private void actualizarDatos(
+            Profesional profesional,
+            ProfesionalRequest request
+    ) {
         profesional.setNombre(request.nombre().trim());
         profesional.setApellido(request.apellido().trim());
         profesional.setMatricula(request.matricula().trim());
