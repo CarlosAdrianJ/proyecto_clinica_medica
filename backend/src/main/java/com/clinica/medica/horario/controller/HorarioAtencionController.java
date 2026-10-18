@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 @RestController
 @RequestMapping("/api/horarios-atencion")
 public class HorarioAtencionController {
@@ -22,11 +24,13 @@ public class HorarioAtencionController {
         this.horarioService = horarioService;
     }
 
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'RECEPCIONISTA')")
     @GetMapping
     public List<HorarioAtencionResponse> listar() {
         return horarioService.listar();
     }
 
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'RECEPCIONISTA')")
     @GetMapping("/{id}")
     public HorarioAtencionResponse buscarPorId(
             @PathVariable Long id
@@ -34,6 +38,7 @@ public class HorarioAtencionController {
         return horarioService.buscarPorId(id);
     }
 
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'RECEPCIONISTA') or @accesoProfesional.puedeConsultar(authentication, #profesionalId)")
     @GetMapping("/profesional/{profesionalId}")
     public List<HorarioAtencionResponse> listarPorProfesional(
             @PathVariable Long profesionalId
