@@ -336,9 +336,10 @@ El listado anterior describe los módulos planificados para el sistema. A contin
 | Especialidades | Backend y frontend integrados en `main`; endpoints verificados manualmente con Postman. Pruebas automatizadas pendientes. | `backend/src/main/java/com/clinica/medica/especialidad/` y `frontend/` |
 | Horarios de atención | Implementado, probado e integrado en `main`; 10 pruebas automatizadas aprobadas y endpoints verificados manualmente con Postman. | `backend/src/main/java/com/clinica/medica/horario/` |
 | Disponibilidad | Implementado, probado e integrado en `main`; 6 pruebas automatizadas aprobadas y endpoint verificado manualmente con Postman. | `backend/src/main/java/com/clinica/medica/disponibilidad/` |
-| Turnos, agenda y usuarios | Planificados; aún no implementados como módulos funcionales. | Descritos en este README |
+| Usuarios y seguridad | Implementado con BCrypt, JWT, roles y pruebas automatizadas. | `backend/src/main/java/com/clinica/medica/usuario/`, `security/` y [guia de seguridad](docs/usuarios-seguridad.md) |
+| Turnos y agenda | Planificados; aún no implementados como módulos funcionales. | Descritos en este README |
 
-La configuración actual de Spring Security permite proteger y probar la API durante el desarrollo. La autenticación con usuarios, roles y JWT descrita en la arquitectura sigue pendiente de implementación.
+La API utiliza usuarios persistidos, BCrypt y JWT con permisos por rol y consultas limitadas al propio profesional. Ver [configuracion, primer administrador, pruebas y coleccion Postman](docs/usuarios-seguridad.md).
 
 ### Esquema de la base de datos
 

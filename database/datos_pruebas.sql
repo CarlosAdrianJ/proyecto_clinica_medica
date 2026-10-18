@@ -50,10 +50,7 @@ INSERT INTO pacientes (nombre, apellido, dni, fecha_nacimiento, telefono, email,
 -- ------------------------------------------------------------
 -- Usuarios
 -- ------------------------------------------------------------
-INSERT INTO usuarios (nombre_usuario, contrasena_hash, rol, profesional_id) VALUES
-    ('admin',       '$2a$10$examplehash.administrador.0000000000000000000', 'ADMINISTRADOR', NULL),
-    ('recepcion1',  '$2a$10$examplehash.recepcionista.0000000000000000000', 'RECEPCIONISTA', NULL),
-    ('laura.gomez', '$2a$10$examplehash.profesional.00000000000000000000',  'PROFESIONAL',   1);
+-- Sin credenciales de ejemplo. Crear el primer administrador con BOOTSTRAP_ADMIN_USERNAME y BOOTSTRAP_ADMIN_PASSWORD; ver docs/usuarios-seguridad.md.
 
 -- ------------------------------------------------------------
 -- Horarios de atención
