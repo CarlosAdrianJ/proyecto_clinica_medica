@@ -143,7 +143,7 @@ entorno accesible para la demostración del proyecto.
 
 ## Estado del proyecto
 
-El proyecto se encuentra en etapa de desarrollo. Los módulos de pacientes, profesionales, especialidades y horarios de atención están integrados en `main`, el frontend cuenta con una estructura inicial y los módulos restantes continúan pendientes o en desarrollo.
+El proyecto se encuentra en etapa de desarrollo. Los módulos de pacientes, profesionales, especialidades, horarios de atención, disponibilidad y usuarios y seguridad están integrados en `main`. El backend implementa autenticación mediante JWT, contraseñas con BCrypt y control de acceso por roles. El frontend cuenta con una estructura inicial y la gestión de especialidades; la pantalla de inicio de sesión y el envío de tokens JWT desde la interfaz siguen pendientes. Los módulos de turnos y agenda continúan pendientes de implementación.
 
 ## Documentación del proyecto
 
@@ -154,6 +154,10 @@ La documentación correspondiente al análisis y diseño se encuentra organizada
 - [Arquitectura del proyecto](docs/arquitectura.md)
 - [Requisitos funcionales y no funcionales](docs/requisitos.md)
 - [Reglas de negocio](docs/reglas-negocio.md)
+- [Usuarios y seguridad: configuración y pruebas](docs/usuarios-seguridad.md)
+- [Colección Postman de Usuarios y Seguridad](docs/usuarios-seguridad.postman_collection.json)
+- [Consultas de verificación en MySQL](docs/verificacion-usuarios-mysql.sql)
+- [Resumen de revisión de Usuarios y Seguridad](docs/revision-usuarios-seguridad.md)
 
 Los scripts de creación de la base de datos y los datos de ejemplo se encuentran en la carpeta `database`:
 
@@ -167,7 +171,7 @@ A partir de las observaciones recibidas en la primera entrega se realizaron los 
 | Observación recibida | Modificación realizada | Estado |
 | --- | --- | --- |
 | Especificar con mayor precisión las tecnologías utilizadas para desarrollar el frontend y sus estilos. | Se definió el uso de React con TypeScript y Vite, junto con React-Bootstrap, Bootstrap y hojas CSS propias. También se explicó que el frontend se comunicará con el backend mediante una API REST. | Documentación corregida y estructura inicial del frontend integrada en `main`. |
-| Ampliar la definición de seguridad y control de acceso del sistema. | Se documentó el uso previsto de Spring Security, JWT, BCrypt, CORS y Bean Validation. También se definieron los roles `ADMINISTRADOR`, `RECEPCIONISTA` y `PROFESIONAL`, junto con sus responsabilidades generales. | Diseño documentado; autenticación con JWT y control definitivo por roles pendientes de implementación. |
+| Ampliar la definición de seguridad y control de acceso del sistema. | Se implementaron Spring Security, JWT, BCrypt, validaciones con Bean Validation y permisos para los roles `ADMINISTRADOR`, `RECEPCIONISTA` y `PROFESIONAL`. | Backend implementado y probado. Integración del login en el frontend y configuración de CORS pendientes. |
 
 ## 3. Arquitectura y módulos
 
@@ -183,7 +187,7 @@ flowchart TD
     B --> C["Services: lógica de negocio"]
     C --> D["Repositories: Spring Data JPA"]
     D --> E[("Base de datos MySQL")]
-    F["Seguridad prevista: Spring Security + JWT"] -.-> B
+    F["Seguridad: Spring Security + JWT"] -.-> B
 ```
 
 -  **Frontend:** interfaz desarrollada con React, TypeScript y Vite. Para los estilos se utilizarán React-Bootstrap, Bootstrap y hojas CSS propias. Permitirá que el personal administrativo utilice las funciones del sistema y se comunicará con el backend mediante una API REST.
@@ -309,31 +313,36 @@ Esto permitirá al personal administrativo consultar rápidamente la planificaci
 
 #### 8. Módulo de usuarios y control de acceso
 
-Este módulo administrará el acceso de los usuarios al sistema.
-Las principales funcionalidades serán:
-- Autenticación mediante nombre de usuario y contraseña.
-- Control de acceso mediante roles.
-- Activación o desactivación de usuarios.
-- Asociación de una cuenta con un profesional cuando corresponda.
-- Restricción de funcionalidades según el rol del usuario.
-  
-Los roles contemplados inicialmente serán:
-- Administrador: tendrá acceso a la administración general del sistema.
-- Recepcionista: podrá gestionar pacientes, consultar disponibilidad y administrar turnos.
-- Profesional: podrá consultar la información relacionada con su propia agenda.
-  
-La autenticación y autorización serán implementadas en el backend utilizando Spring Security y JWT.
-Los pacientes formarán parte de la información administrada por el sistema, pero no tendrán acceso mediante una cuenta propia en esta primera versión. El portal de autogestión para pacientes podrá incorporarse como una ampliación futura.
+Este módulo administra las cuentas de acceso al sistema desde el backend.
+
+Las funcionalidades implementadas son:
+
+- Creación, consulta y actualización de usuarios.
+- Baja lógica y reactivación de cuentas.
+- Cambio de contraseña.
+- Inicio de sesión mediante nombre de usuario y contraseña.
+- Almacenamiento de contraseñas mediante BCrypt.
+- Emisión y validación de tokens JWT.
+- Control de acceso según los roles ADMINISTRADOR, RECEPCIONISTA y PROFESIONAL.
+- Asociación de las cuentas profesionales con un profesional existente y activo.
+- Restricción de las consultas del profesional a sus propios datos, horarios y disponibilidad.
+- Rechazo del acceso de cuentas desactivadas, incluso cuando presentan un token previamente emitido.
+
+El administrador gestiona las cuentas y los catálogos del sistema. El recepcionista puede gestionar pacientes y consultar profesionales, especialidades, horarios y disponibilidad. El profesional puede consultar especialidades y la información autorizada correspondiente a su profesional asociado.
+
+Los permisos sobre turnos y agenda se incorporarán cuando se implementen esos módulos. La pantalla de inicio de sesión y el envío del JWT desde el frontend siguen pendientes.
+
+Los pacientes forman parte de la información administrada por el sistema, pero no tienen cuentas de acceso en esta versión.
 
 ### Estado de los módulos subidos al repositorio
 
 El listado anterior describe los módulos planificados para el sistema. A continuación se distingue el código implementado y subido al repositorio del trabajo que aún está en desarrollo:
 
-| Módulo | Estado al 28/09/2026 | Ubicación en el repositorio |
+| Módulo | Estado al 18/10/2026 | Ubicación en el repositorio |
 | --- | --- | --- |
 | Pacientes | Implementado, probado e integrado en `main`. | `backend/src/main/java/com/clinica/medica/paciente/` |
 | Profesionales | Implementado, probado e integrado en `main`; endpoints verificados manualmente con Postman. | `backend/src/main/java/com/clinica/medica/profesional/` |
-| Especialidades | Backend y frontend integrados en `main`; endpoints verificados manualmente con Postman. Pruebas automatizadas pendientes. | `backend/src/main/java/com/clinica/medica/especialidad/` y `frontend/` |
+| Especialidades | Backend y frontend integrados en `main`; endpoints verificados manualmente con Postman. Cuenta con 8 pruebas automatizadas aprobadas. | `backend/src/main/java/com/clinica/medica/especialidad/` y `frontend/` |
 | Horarios de atención | Implementado, probado e integrado en `main`; 10 pruebas automatizadas aprobadas y endpoints verificados manualmente con Postman. | `backend/src/main/java/com/clinica/medica/horario/` |
 | Disponibilidad | Implementado, probado e integrado en `main`; 6 pruebas automatizadas aprobadas y endpoint verificado manualmente con Postman. | `backend/src/main/java/com/clinica/medica/disponibilidad/` |
 | Usuarios y seguridad | Implementado con BCrypt, JWT, roles y pruebas automatizadas. | `backend/src/main/java/com/clinica/medica/usuario/`, `security/` y [guia de seguridad](docs/usuarios-seguridad.md) |
@@ -479,3 +488,21 @@ Desde la raíz del proyecto:
 ```
 
 Estas pruebas utilizan un repositorio simulado; no verifican la conexión con MySQL ni el funcionamiento completo de la API.
+
+### Pruebas automatizadas del backend
+
+Desde la raíz del proyecto:
+
+```powershell
+.\backend\mvnw.cmd -f .\backend\pom.xml test
+```
+
+En la verificación del 18/10/2026 se aprobaron 85 pruebas, sin fallos, errores ni omisiones: 55 de los módulos previos y 30 de Usuarios y Seguridad.
+
+Las pruebas automatizadas utilizan H2 en memoria y no modifican la base MySQL.
+
+### Verificación de Usuarios y Seguridad con Postman
+
+La colección `docs/usuarios-seguridad.postman_collection.json` se ejecutó mediante Newman contra el backend local configurado con MySQL. Se aprobaron 41 solicitudes y 63 verificaciones, incluyendo autenticación, permisos por rol, asociación con profesionales, baja lógica, reactivación y cambio de contraseña.
+
+La configuración de MySQL, las variables necesarias para JWT y la creación del primer administrador se explican en la [guía de Usuarios y Seguridad](docs/usuarios-seguridad.md).
