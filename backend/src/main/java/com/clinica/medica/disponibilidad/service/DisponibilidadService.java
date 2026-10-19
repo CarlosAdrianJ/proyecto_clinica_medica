@@ -7,6 +7,9 @@ import com.clinica.medica.horario.model.HorarioAtencion;
 import com.clinica.medica.horario.repository.HorarioAtencionRepository;
 import com.clinica.medica.profesional.model.Profesional;
 import com.clinica.medica.profesional.repository.ProfesionalRepository;
+import com.clinica.medica.turno.model.EstadoTurno;
+import com.clinica.medica.turno.model.Turno;
+import com.clinica.medica.turno.repository.TurnoRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -23,16 +26,22 @@ public class DisponibilidadService {
 
     private final ProfesionalRepository profesionalRepository;
     private final HorarioAtencionRepository horarioAtencionRepository;
+    private final TurnoRepository turnoRepository;
 
     public DisponibilidadService(
             ProfesionalRepository profesionalRepository,
-            HorarioAtencionRepository horarioAtencionRepository
+            HorarioAtencionRepository horarioAtencionRepository,
+            TurnoRepository turnoRepository
     ) {
         this.profesionalRepository = profesionalRepository;
         this.horarioAtencionRepository = horarioAtencionRepository;
+        this.turnoRepository = turnoRepository;
     }
 
-    public DisponibilidadResponse consultar(Long profesionalId, LocalDate fecha) {
+    public DisponibilidadResponse consultar(
+            Long profesionalId,
+            LocalDate fecha
+    ) {
         Profesional profesional = profesionalRepository.findById(profesionalId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
@@ -49,14 +58,29 @@ public class DisponibilidadService {
         DiaSemana diaSemana = convertirDiaSemana(fecha.getDayOfWeek());
 
         List<HorarioAtencion> horarios =
-                horarioAtencionRepository.findByProfesionalIdAndActivoTrue(profesionalId);
+                horarioAtencionRepository
+                        .findByProfesionalIdAndActivoTrue(profesionalId);
+
+        List<Turno> turnosOcupados =
+                turnoRepository
+                        .findByProfesionalIdAndFechaAndEstadoNotOrderByHoraInicioAsc(
+                                profesionalId,
+                                fecha,
+                                EstadoTurno.CANCELADO
+                        );
 
         List<FranjaDisponibleResponse> franjas = new ArrayList<>();
 
         horarios.stream()
                 .filter(horario -> horario.getDiaSemana() == diaSemana)
                 .sorted(Comparator.comparing(HorarioAtencion::getHoraDesde))
-                .forEach(horario -> generarFranjas(horario, franjas));
+                .forEach(horario ->
+                        generarFranjas(
+                                horario,
+                                turnosOcupados,
+                                franjas
+                        )
+                );
 
         return new DisponibilidadResponse(
                 profesionalId,
@@ -67,6 +91,7 @@ public class DisponibilidadService {
 
     private void generarFranjas(
             HorarioAtencion horario,
+            List<Turno> turnosOcupados,
             List<FranjaDisponibleResponse> franjas
     ) {
         LocalTime horaInicio = horario.getHoraDesde();
@@ -78,13 +103,27 @@ public class DisponibilidadService {
             LocalTime horaFin =
                     horaInicio.plusMinutes(horario.getDuracionTurno());
 
-            franjas.add(new FranjaDisponibleResponse(
-                    horaInicio,
-                    horaFin
-            ));
+            if (!estaOcupada(horaInicio, horaFin, turnosOcupados)) {
+                franjas.add(new FranjaDisponibleResponse(
+                        horaInicio,
+                        horaFin
+                ));
+            }
 
             horaInicio = horaFin;
         }
+    }
+
+    private boolean estaOcupada(
+            LocalTime horaInicio,
+            LocalTime horaFin,
+            List<Turno> turnosOcupados
+    ) {
+        return turnosOcupados.stream()
+                .anyMatch(turno ->
+                        turno.getHoraInicio().isBefore(horaFin)
+                                && turno.getHoraFin().isAfter(horaInicio)
+                );
     }
 
     private DiaSemana convertirDiaSemana(DayOfWeek dayOfWeek) {

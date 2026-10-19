@@ -143,7 +143,7 @@ entorno accesible para la demostración del proyecto.
 
 ## Estado del proyecto
 
-El proyecto se encuentra en etapa de desarrollo. Los módulos de pacientes, profesionales, especialidades, horarios de atención, disponibilidad y usuarios y seguridad están integrados en `main`. El backend implementa autenticación mediante JWT, contraseñas con BCrypt y control de acceso por roles. El frontend cuenta con una estructura inicial y la gestión de especialidades; la pantalla de inicio de sesión y el envío de tokens JWT desde la interfaz siguen pendientes. Los módulos de turnos y agenda continúan pendientes de implementación.
+El proyecto se encuentra en etapa de desarrollo. Los módulos de pacientes, profesionales, especialidades, horarios de atención, disponibilidad, turnos y usuarios y seguridad están implementados y probados en el backend. El backend utiliza autenticación mediante JWT, contraseñas con BCrypt y control de acceso por roles. El frontend cuenta con una estructura inicial y la gestión de especialidades; la pantalla de inicio de sesión, el envío de tokens JWT y la agenda visual de turnos continúan pendientes.
 
 ## Documentación del proyecto
 
@@ -330,7 +330,7 @@ Las funcionalidades implementadas son:
 
 El administrador gestiona las cuentas y los catálogos del sistema. El recepcionista puede gestionar pacientes y consultar profesionales, especialidades, horarios y disponibilidad. El profesional puede consultar especialidades y la información autorizada correspondiente a su profesional asociado.
 
-Los permisos sobre turnos y agenda se incorporarán cuando se implementen esos módulos. La pantalla de inicio de sesión y el envío del JWT desde el frontend siguen pendientes.
+Los endpoints del módulo de turnos están habilitados para los roles Administrador y Recepcionista. La agenda restringida para el profesional, la pantalla de inicio de sesión y el envío del JWT desde el frontend siguen pendientes.
 
 Los pacientes forman parte de la información administrada por el sistema, pero no tienen cuentas de acceso en esta versión.
 
@@ -344,7 +344,9 @@ El listado anterior describe los módulos planificados para el sistema. A contin
 | Profesionales | Implementado, probado e integrado en `main`; endpoints verificados manualmente con Postman. | `backend/src/main/java/com/clinica/medica/profesional/` |
 | Especialidades | Backend y frontend integrados en `main`; endpoints verificados manualmente con Postman. Cuenta con 8 pruebas automatizadas aprobadas. | `backend/src/main/java/com/clinica/medica/especialidad/` y `frontend/` |
 | Horarios de atención | Implementado, probado e integrado en `main`; 10 pruebas automatizadas aprobadas y endpoints verificados manualmente con Postman. | `backend/src/main/java/com/clinica/medica/horario/` |
-| Disponibilidad | Implementado, probado e integrado en `main`; 6 pruebas automatizadas aprobadas y endpoint verificado manualmente con Postman. | `backend/src/main/java/com/clinica/medica/disponibilidad/` |
+| Disponibilidad | Implementado y probado; 8 pruebas automatizadas aprobadas y endpoint verificado manualmente con Postman. | `backend/src/main/java/com/clinica/medica/disponibilidad/` |
+| Turnos | Implementado y probado; 12 pruebas automatizadas aprobadas. Creación, consulta, cancelación y reutilización de horarios verificados manualmente con Postman. | `backend/src/main/java/com/clinica/medica/turno/` |
+| Agenda | Pendiente de implementación como interfaz visual y consulta restringida para cada profesional. | Descrita en este README |
 | Usuarios y seguridad | Implementado con BCrypt, JWT, roles y pruebas automatizadas. | `backend/src/main/java/com/clinica/medica/usuario/`, `security/` y [guia de seguridad](docs/usuarios-seguridad.md) |
 | Turnos y agenda | Planificados; aún no implementados como módulos funcionales. | Descritos en este README |
 
@@ -454,7 +456,7 @@ erDiagram
 - Una especialidad puede estar asociada con varios profesionales.
 - Un profesional puede tener varios horarios de atención.
 - Cada turno corresponde a un paciente, un profesional y una especialidad.
-- La base de datos impide dos turnos con el mismo profesional, fecha y hora de inicio. La validación de intervalos superpuestos y la reutilización de horarios de turnos cancelados quedan pendientes para el módulo de turnos.
+- El servicio impide registrar turnos superpuestos para un mismo profesional, fecha y franja horaria. Los turnos cancelados no bloquean la disponibilidad y su horario puede asignarse nuevamente.
 
 ### Reglas de negocio
 
@@ -497,7 +499,7 @@ Desde la raíz del proyecto:
 .\backend\mvnw.cmd -f .\backend\pom.xml test
 ```
 
-En la verificación del 18/10/2026 se aprobaron 85 pruebas, sin fallos, errores ni omisiones: 55 de los módulos previos y 30 de Usuarios y Seguridad.
+En la verificación del 18/10/2026 se aprobaron 99 pruebas automatizadas, sin fallos, errores ni omisiones: 69 correspondientes a los módulos funcionales, incluido Turnos, y 30 de Usuarios y Seguridad.
 
 Las pruebas automatizadas utilizan H2 en memoria y no modifican la base MySQL.
 
