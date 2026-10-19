@@ -48,10 +48,12 @@ public class SecurityConfig {
                             "/api/especialidades", "/api/especialidades/**",
                             "/api/horarios-atencion", "/api/horarios-atencion/**", "/api/disponibilidad")
                         .hasAnyRole("ADMINISTRADOR", "RECEPCIONISTA", "PROFESIONAL")
-                    .requestMatchers("/api/profesionales", "/api/profesionales/**", "/api/especialidades",
-                            "/api/especialidades/**", "/api/horarios-atencion", "/api/horarios-atencion/**")
-                        .hasRole("ADMINISTRADOR")
-                    .anyRequest().denyAll())
+                        .requestMatchers("/api/profesionales", "/api/profesionales/**", "/api/especialidades",
+                                "/api/especialidades/**", "/api/horarios-atencion", "/api/horarios-atencion/**")
+                            .hasRole("ADMINISTRADOR")
+                        .requestMatchers("/api/turnos", "/api/turnos/**")
+                            .hasAnyRole("ADMINISTRADOR", "RECEPCIONISTA")
+                        .anyRequest().denyAll())
                 .oauth2ResourceServer(o -> o.jwt(j -> j.jwtAuthenticationConverter(converter)))
                 .build();
     }
