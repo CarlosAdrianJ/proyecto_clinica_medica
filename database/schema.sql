@@ -172,12 +172,7 @@ CREATE TABLE turnos (
         REFERENCES profesional_especialidad(profesional_id, especialidad_id),
 
     CONSTRAINT chk_turno_rango
-        CHECK (hora_fin > hora_inicio),
-
-    -- Evita dos turnos para el mismo profesional que arranquen a
-    -- la misma fecha/hora. 
-    CONSTRAINT uq_turno_profesional_fecha_hora
-        UNIQUE (profesional_id, fecha, hora_inicio)
+        CHECK (hora_fin > hora_inicio)
 );
 
 
