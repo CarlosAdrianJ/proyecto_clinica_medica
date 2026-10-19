@@ -11,6 +11,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.clinica.medica.security.AccesoProfesional;
+import org.springframework.security.core.Authentication;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -20,20 +22,35 @@ import java.util.List;
 public class TurnoController {
 
     private final TurnoService turnoService;
+    private final AccesoProfesional accesoProfesional;
 
-    public TurnoController(TurnoService turnoService) {
+    public TurnoController(
+            TurnoService turnoService,
+            AccesoProfesional accesoProfesional) {
         this.turnoService = turnoService;
+        this.accesoProfesional = accesoProfesional;
+    }
+
+    @GetMapping("/mi-agenda")
+    public List<TurnoResponse> consultarMiAgenda(
+            Authentication authentication,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
+            @RequestParam(required = false) EstadoTurno estado) {
+        Long profesionalId = accesoProfesional.obtenerProfesionalId(authentication);
+
+        return turnoService.buscar(
+                null,
+                profesionalId,
+                fecha,
+                estado);
     }
 
     @GetMapping
     public List<TurnoResponse> listar(
             @RequestParam(required = false) Long pacienteId,
             @RequestParam(required = false) Long profesionalId,
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            LocalDate fecha,
-            @RequestParam(required = false) EstadoTurno estado
-    ) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
+            @RequestParam(required = false) EstadoTurno estado) {
         if (pacienteId == null
                 && profesionalId == null
                 && fecha == null
@@ -45,8 +62,7 @@ public class TurnoController {
                 pacienteId,
                 profesionalId,
                 fecha,
-                estado
-        );
+                estado);
     }
 
     @GetMapping("/{id}")
@@ -56,8 +72,7 @@ public class TurnoController {
 
     @PostMapping
     public ResponseEntity<TurnoResponse> crear(
-            @Valid @RequestBody TurnoRequest request
-    ) {
+            @Valid @RequestBody TurnoRequest request) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(turnoService.crear(request));
@@ -66,16 +81,14 @@ public class TurnoController {
     @PutMapping("/{id}/reprogramar")
     public TurnoResponse reprogramar(
             @PathVariable Long id,
-            @Valid @RequestBody ReprogramarTurnoRequest request
-    ) {
+            @Valid @RequestBody ReprogramarTurnoRequest request) {
         return turnoService.reprogramar(id, request);
     }
 
     @PatchMapping("/{id}/estado")
     public TurnoResponse cambiarEstado(
             @PathVariable Long id,
-            @Valid @RequestBody CambiarEstadoTurnoRequest request
-    ) {
+            @Valid @RequestBody CambiarEstadoTurnoRequest request) {
         return turnoService.cambiarEstado(id, request.estado());
     }
 
