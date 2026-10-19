@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 @RestController
 @RequestMapping("/api/profesionales")
 public class ProfesionalController {
@@ -20,16 +22,19 @@ public class ProfesionalController {
         this.profesionalService = profesionalService;
     }
 
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'RECEPCIONISTA')")
     @GetMapping
     public List<ProfesionalResponse> listar() {
         return profesionalService.listar();
     }
 
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'RECEPCIONISTA') or @accesoProfesional.puedeConsultar(authentication, #id)")
     @GetMapping("/{id}")
     public ProfesionalResponse buscarPorId(@PathVariable Long id) {
         return profesionalService.buscarPorId(id);
     }
 
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'RECEPCIONISTA')")
     @GetMapping("/matricula/{matricula}")
     public ProfesionalResponse buscarPorMatricula(@PathVariable String matricula) {
         return profesionalService.buscarPorMatricula(matricula);

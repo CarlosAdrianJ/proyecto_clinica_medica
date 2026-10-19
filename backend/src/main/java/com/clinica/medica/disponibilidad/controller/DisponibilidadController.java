@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 @RestController
 @RequestMapping("/api/disponibilidad")
 public class DisponibilidadController {
@@ -22,6 +24,7 @@ public class DisponibilidadController {
         this.disponibilidadService = disponibilidadService;
     }
 
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'RECEPCIONISTA') or @accesoProfesional.puedeConsultar(authentication, #profesionalId)")
     @GetMapping
     public DisponibilidadResponse consultar(
             @RequestParam Long profesionalId,
