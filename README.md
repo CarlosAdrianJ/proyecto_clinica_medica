@@ -330,7 +330,7 @@ Las funcionalidades implementadas son:
 
 El administrador gestiona las cuentas y los catálogos del sistema. El recepcionista puede gestionar pacientes y consultar profesionales, especialidades, horarios y disponibilidad. El profesional puede consultar especialidades y la información autorizada correspondiente a su profesional asociado.
 
-Los endpoints del módulo de turnos están habilitados para los roles Administrador y Recepcionista. La agenda restringida para el profesional, la pantalla de inicio de sesión y el envío del JWT desde el frontend siguen pendientes.
+Los endpoints administrativos del módulo de turnos están habilitados para los roles Administrador y Recepcionista. El profesional autenticado puede consultar únicamente sus propios turnos mediante el endpoint `/api/turnos/mi-agenda`. La pantalla de inicio de sesión, el envío del JWT y la agenda visual desde el frontend siguen pendientes.
 
 Los pacientes forman parte de la información administrada por el sistema, pero no tienen cuentas de acceso en esta versión.
 
@@ -346,9 +346,8 @@ El listado anterior describe los módulos planificados para el sistema. A contin
 | Horarios de atención | Implementado, probado e integrado en `main`; 10 pruebas automatizadas aprobadas y endpoints verificados manualmente con Postman. | `backend/src/main/java/com/clinica/medica/horario/` |
 | Disponibilidad | Implementado y probado; 8 pruebas automatizadas aprobadas y endpoint verificado manualmente con Postman. | `backend/src/main/java/com/clinica/medica/disponibilidad/` |
 | Turnos | Implementado y probado; 12 pruebas automatizadas aprobadas. Creación, consulta, cancelación y reutilización de horarios verificados manualmente con Postman. | `backend/src/main/java/com/clinica/medica/turno/` |
-| Agenda | Pendiente de implementación como interfaz visual y consulta restringida para cada profesional. | Descrita en este README |
+| Agenda | Consulta restringida del profesional implementada y probada en el backend mediante `/api/turnos/mi-agenda`; interfaz visual pendiente en el frontend. | `backend/src/main/java/com/clinica/medica/turno/` y `security/` |
 | Usuarios y seguridad | Implementado con BCrypt, JWT, roles y pruebas automatizadas. | `backend/src/main/java/com/clinica/medica/usuario/`, `security/` y [guia de seguridad](docs/usuarios-seguridad.md) |
-| Turnos y agenda | Planificados; aún no implementados como módulos funcionales. | Descritos en este README |
 
 La API utiliza usuarios persistidos, BCrypt y JWT con permisos por rol y consultas limitadas al propio profesional. Ver [configuracion, primer administrador, pruebas y coleccion Postman](docs/usuarios-seguridad.md).
 
@@ -499,7 +498,7 @@ Desde la raíz del proyecto:
 .\backend\mvnw.cmd -f .\backend\pom.xml test
 ```
 
-En la verificación del 18/10/2026 se aprobaron 99 pruebas automatizadas, sin fallos, errores ni omisiones: 69 correspondientes a los módulos funcionales, incluido Turnos, y 30 de Usuarios y Seguridad.
+En la verificación del 19/10/2026 se aprobaron 101 pruebas automatizadas, sin fallos, errores ni omisiones: 69 correspondientes a los módulos funcionales, incluido Turnos, y 32 de Usuarios y Seguridad, incluidas las restricciones de acceso a la agenda profesional.
 
 Las pruebas automatizadas utilizan H2 en memoria y no modifican la base MySQL.
 
