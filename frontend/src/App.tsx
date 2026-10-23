@@ -13,6 +13,7 @@ import {
   obtenerToken,
 } from './auth/sesion';
 import LoginPage from './components/auth/LoginPage';
+import HorariosPage from './components/horarios/HorariosPage';
 import PacientesPage from './components/pacientes/PacientesPage';
 import TurnosPage from './components/turnos/TurnosPage';
 import UsuariosPage from './components/usuarios/UsuariosPage';
@@ -21,7 +22,11 @@ import type {
   UsuarioAutenticado,
 } from './types/auth';
 
-type Pantalla = 'turnos' | 'pacientes' | 'usuarios';
+type Pantalla =
+  | 'turnos'
+  | 'horarios'
+  | 'pacientes'
+  | 'usuarios';
 
 function App() {
   const [token, setToken] = useState<string | null>(
@@ -123,6 +128,13 @@ function App() {
                 Turnos
               </Nav.Link>
 
+              <Nav.Link
+                active={pantalla === 'horarios'}
+                onClick={() => setPantalla('horarios')}
+              >
+                Horarios
+              </Nav.Link>
+
               {puedeGestionarPacientes && (
                 <Nav.Link
                   active={pantalla === 'pacientes'}
@@ -169,6 +181,12 @@ function App() {
       ) : pantalla === 'pacientes' &&
         puedeGestionarPacientes ? (
         <PacientesPage token={token} />
+      ) : pantalla === 'horarios' ? (
+        <HorariosPage
+          token={token}
+          rol={usuario.rol}
+          profesionalId={usuario.profesionalId}
+        />
       ) : (
         <TurnosPage
           token={token}
