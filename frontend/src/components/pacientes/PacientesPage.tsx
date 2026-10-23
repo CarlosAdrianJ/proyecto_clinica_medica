@@ -46,8 +46,7 @@ function normalizarTexto(texto: string): string {
     .toLocaleLowerCase()
     .replace(/[^a-z0-9]+/g, ' ')
     .trim();
-}
-  
+}  
 function PacientesPage({ token }: PacientesPageProps) {
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -229,7 +228,6 @@ function PacientesPage({ token }: PacientesPageProps) {
 
     return datosPaciente.includes(termino);
   }); 
-
   if (cargando) {
     return (
       <main className="container py-5 text-center">
