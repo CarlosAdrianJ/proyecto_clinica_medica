@@ -143,7 +143,7 @@ entorno accesible para la demostración del proyecto.
 
 ## Estado del proyecto
 
-El proyecto se encuentra en etapa de desarrollo. Los módulos de pacientes, profesionales, especialidades, horarios de atención, disponibilidad, turnos y usuarios y seguridad están implementados y probados en el backend. El backend utiliza autenticación mediante JWT, contraseñas con BCrypt y control de acceso por roles. El frontend cuenta con las pantallas de especialidades, inicio de sesión y gestión visual de turnos y agenda. También implementa almacenamiento y envío del JWT, validación de la sesión y cierre de sesión. Continúan pendientes las pantallas frontend de pacientes, profesionales, horarios de atención, disponibilidad y administración de usuarios, además de la integración final de la navegación.
+El proyecto se encuentra en una etapa avanzada de desarrollo. Los módulos de pacientes, profesionales, especialidades, horarios de atención, disponibilidad, turnos y usuarios y seguridad están implementados y probados en el backend. El sistema utiliza autenticación mediante JWT, contraseñas protegidas con BCrypt y control de acceso según los roles Administrador, Recepcionista y Profesional. El frontend cuenta con inicio y cierre de sesión, validación y almacenamiento de la sesión, envío del token JWT y navegación según el rol autenticado. También se encuentran integradas las pantallas de especialidades, pacientes, horarios de atención, disponibilidad, turnos, agenda profesional y administración de usuarios. Continúan pendientes la integración final de la pantalla de profesionales y la verificación integral del sistema después de incorporar todos los módulos desarrollados por el equipo.
 
 ## Documentación del proyecto
 
@@ -163,6 +163,18 @@ Los scripts de creación de la base de datos y los datos de ejemplo se encuentra
 
 - [Esquema de la base de datos](database/schema.sql)
 - [Datos de prueba](database/datos_pruebas.sql)
+
+## Inicio del entorno de desarrollo
+
+Desde la raíz del proyecto, el backend y el frontend pueden iniciarse mediante el siguiente comando de PowerShell:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\iniciar-desarrollo.ps1
+```
+
+El script solicita de forma segura la contraseña local de MySQL, genera un secreto JWT temporal, inicia el backend y el frontend en ventanas separadas y abre la aplicación en `http://localhost:5173`. La contraseña ingresada y el secreto generado no se almacenan en el repositorio.
+
+Para detener el entorno deben cerrarse las ventanas correspondientes al backend y al frontend o presionar `Ctrl + C` dentro de cada una.
 
 ## Cambios respecto a la primera entrega
 
@@ -338,16 +350,16 @@ Los pacientes forman parte de la información administrada por el sistema, pero 
 
 El listado anterior describe los módulos planificados para el sistema. A continuación se distingue el código implementado y subido al repositorio del trabajo que aún está en desarrollo:
 
-| Módulo | Estado al 22/10/2026 | Ubicación en el repositorio |
+| Módulo | Estado al 23/10/2026 | Ubicación en el repositorio |
 | --- | --- | --- |
-| Pacientes | Implementado, probado e integrado en `main`. | `backend/src/main/java/com/clinica/medica/paciente/` |
+| Pacientes | Backend y frontend implementados, probados e integrados en `main`. El frontend permite listar, buscar, crear, modificar y realizar la baja lógica de pacientes. | `backend/src/main/java/com/clinica/medica/paciente/` y `frontend/src/components/pacientes/` |
 | Profesionales | Implementado, probado e integrado en `main`; endpoints verificados manualmente con Postman. | `backend/src/main/java/com/clinica/medica/profesional/` |
 | Especialidades | Backend y frontend integrados en `main`; endpoints verificados manualmente con Postman. Cuenta con 8 pruebas automatizadas aprobadas. | `backend/src/main/java/com/clinica/medica/especialidad/` y `frontend/` |
-| Horarios de atención | Implementado, probado e integrado en `main`; 10 pruebas automatizadas aprobadas y endpoints verificados manualmente con Postman. | `backend/src/main/java/com/clinica/medica/horario/` |
-| Disponibilidad | Implementado y probado; 8 pruebas automatizadas aprobadas y endpoint verificado manualmente con Postman. | `backend/src/main/java/com/clinica/medica/disponibilidad/` |
+| Horarios de atención | Backend y frontend implementados, probados e integrados en `main`. La interfaz permite consultar, crear, modificar y desactivar horarios, con selección de horas en intervalos de 15 minutos. minutos. | `backend/src/main/java/com/clinica/medica/horario/` y `frontend/src/components/horarios/` |
+| Disponibilidad | Backend y frontend implementados, probados e integrados en `main`. La interfaz permite consultar los turnos disponibles de un profesional para una fecha determinada. | `backend/src/main/java/com/clinica/medica/disponibilidad/` y `frontend/src/components/disponibilidad/` |
 | Turnos | Implementado y probado; 12 pruebas automatizadas aprobadas. Creación, consulta, cancelación y reutilización de horarios verificados manualmente con Postman. | `backend/src/main/java/com/clinica/medica/turno/` |
 | Agenda | Consulta restringida del profesional implementada y probada en el backend mediante `/api/turnos/mi-agenda`; interfaz visual integrada en el frontend. | `backend/src/main/java/com/clinica/medica/turno/`, `frontend/src/components/turnos/` y `security/` |
-| Usuarios y seguridad | Backend implementado con BCrypt, JWT, roles y pruebas automatizadas. El frontend cuenta con inicio de sesión, validación de sesión y cierre de sesión; la administración visual de usuarios continúa pendiente. | `backend/src/main/java/com/clinica/medica/usuario/`, `security/`, `frontend/src/components/auth/` y [guía de seguridad](docs/usuarios-seguridad.md) |
+| Usuarios y seguridad | Backend y frontend implementados con BCrypt, JWT y control de acceso por roles. El frontend permite iniciar y cerrar sesión, validar la sesión y administrar usuarios según los permisos del Administrador. | `backend/src/main/java/com/clinica/medica/usuario/`, `backend/src/main/java/com/clinica/medica/security/`, `frontend/src/components/auth/`, `frontend/src/components/usuarios/` y [guía de seguridad](docs/usuarios-seguridad.md) |
 
 La API utiliza usuarios persistidos, BCrypt y JWT con permisos por rol y consultas limitadas al propio profesional. Ver [configuracion, primer administrador, pruebas y coleccion Postman](docs/usuarios-seguridad.md).
 
@@ -498,7 +510,7 @@ Desde la raíz del proyecto:
 .\backend\mvnw.cmd -f .\backend\pom.xml test
 ```
 
-En la verificación del 19/10/2026 se aprobaron 101 pruebas automatizadas, sin fallos, errores ni omisiones: 69 correspondientes a los módulos funcionales, incluido Turnos, y 32 de Usuarios y Seguridad, incluidas las restricciones de acceso a la agenda profesional.
+En la verificación del 23/10/2026 se aprobaron 101 pruebas automatizadas, sin fallos, errores ni omisiones: 69 correspondientes a los módulos funcionales, incluido Turnos, y 32 de Usuarios y Seguridad, incluidas las restricciones de acceso a la agenda profesional.
 
 Las pruebas automatizadas utilizan H2 en memoria y no modifican la base MySQL.
 
