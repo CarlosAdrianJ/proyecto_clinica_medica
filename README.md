@@ -143,7 +143,7 @@ entorno accesible para la demostración del proyecto.
 
 ## Estado del proyecto
 
-El proyecto se encuentra en etapa de desarrollo. Los módulos de pacientes, profesionales, especialidades, horarios de atención, disponibilidad, turnos y usuarios y seguridad están implementados y probados en el backend. El backend utiliza autenticación mediante JWT, contraseñas con BCrypt y control de acceso por roles. El frontend cuenta con una estructura inicial y la gestión de especialidades; la pantalla de inicio de sesión, el envío de tokens JWT y la agenda visual de turnos continúan pendientes.
+El proyecto se encuentra en etapa de desarrollo. Los módulos de pacientes, profesionales, especialidades, horarios de atención, disponibilidad, turnos y usuarios y seguridad están implementados y probados en el backend. El backend utiliza autenticación mediante JWT, contraseñas con BCrypt y control de acceso por roles. El frontend cuenta con las pantallas de especialidades, inicio de sesión y gestión visual de turnos y agenda. También implementa almacenamiento y envío del JWT, validación de la sesión y cierre de sesión. Continúan pendientes las pantallas frontend de pacientes, profesionales, horarios de atención, disponibilidad y administración de usuarios, además de la integración final de la navegación.
 
 ## Documentación del proyecto
 
@@ -171,7 +171,7 @@ A partir de las observaciones recibidas en la primera entrega se realizaron los 
 | Observación recibida | Modificación realizada | Estado |
 | --- | --- | --- |
 | Especificar con mayor precisión las tecnologías utilizadas para desarrollar el frontend y sus estilos. | Se definió el uso de React con TypeScript y Vite, junto con React-Bootstrap, Bootstrap y hojas CSS propias. También se explicó que el frontend se comunicará con el backend mediante una API REST. | Documentación corregida y estructura inicial del frontend integrada en `main`. |
-| Ampliar la definición de seguridad y control de acceso del sistema. | Se implementaron Spring Security, JWT, BCrypt, validaciones con Bean Validation y permisos para los roles `ADMINISTRADOR`, `RECEPCIONISTA` y `PROFESIONAL`. | Backend implementado y probado. Integración del login en el frontend y configuración de CORS pendientes. |
+| Ampliar la definición de seguridad y control de acceso del sistema. | Se implementaron Spring Security, JWT, BCrypt, validaciones con Bean Validation y permisos para los roles `ADMINISTRADOR`, `RECEPCIONISTA` y `PROFESIONAL`. | Backend y autenticación frontend implementados y probados; configuración definitiva de CORS para el despliegue pendiente. |
 
 ## 3. Arquitectura y módulos
 
@@ -330,7 +330,7 @@ Las funcionalidades implementadas son:
 
 El administrador gestiona las cuentas y los catálogos del sistema. El recepcionista puede gestionar pacientes y consultar profesionales, especialidades, horarios y disponibilidad. El profesional puede consultar especialidades y la información autorizada correspondiente a su profesional asociado.
 
-Los endpoints administrativos del módulo de turnos están habilitados para los roles Administrador y Recepcionista. El profesional autenticado puede consultar únicamente sus propios turnos mediante el endpoint `/api/turnos/mi-agenda`. La pantalla de inicio de sesión, el envío del JWT y la agenda visual desde el frontend siguen pendientes.
+Los endpoints administrativos del módulo de turnos están habilitados para los roles Administrador y Recepcionista. El profesional autenticado puede consultar únicamente sus propios turnos mediante el endpoint `/api/turnos/mi-agenda`. En el frontend se implementaron el inicio de sesión, el almacenamiento y envío del JWT, el cierre de sesión y la pantalla visual de turnos y agenda según el rol autenticado.
 
 Los pacientes forman parte de la información administrada por el sistema, pero no tienen cuentas de acceso en esta versión.
 
@@ -338,7 +338,7 @@ Los pacientes forman parte de la información administrada por el sistema, pero 
 
 El listado anterior describe los módulos planificados para el sistema. A continuación se distingue el código implementado y subido al repositorio del trabajo que aún está en desarrollo:
 
-| Módulo | Estado al 18/10/2026 | Ubicación en el repositorio |
+| Módulo | Estado al 22/10/2026 | Ubicación en el repositorio |
 | --- | --- | --- |
 | Pacientes | Implementado, probado e integrado en `main`. | `backend/src/main/java/com/clinica/medica/paciente/` |
 | Profesionales | Implementado, probado e integrado en `main`; endpoints verificados manualmente con Postman. | `backend/src/main/java/com/clinica/medica/profesional/` |
@@ -346,8 +346,8 @@ El listado anterior describe los módulos planificados para el sistema. A contin
 | Horarios de atención | Implementado, probado e integrado en `main`; 10 pruebas automatizadas aprobadas y endpoints verificados manualmente con Postman. | `backend/src/main/java/com/clinica/medica/horario/` |
 | Disponibilidad | Implementado y probado; 8 pruebas automatizadas aprobadas y endpoint verificado manualmente con Postman. | `backend/src/main/java/com/clinica/medica/disponibilidad/` |
 | Turnos | Implementado y probado; 12 pruebas automatizadas aprobadas. Creación, consulta, cancelación y reutilización de horarios verificados manualmente con Postman. | `backend/src/main/java/com/clinica/medica/turno/` |
-| Agenda | Consulta restringida del profesional implementada y probada en el backend mediante `/api/turnos/mi-agenda`; interfaz visual pendiente en el frontend. | `backend/src/main/java/com/clinica/medica/turno/` y `security/` |
-| Usuarios y seguridad | Implementado con BCrypt, JWT, roles y pruebas automatizadas. | `backend/src/main/java/com/clinica/medica/usuario/`, `security/` y [guia de seguridad](docs/usuarios-seguridad.md) |
+| Agenda | Consulta restringida del profesional implementada y probada en el backend mediante `/api/turnos/mi-agenda`; interfaz visual integrada en el frontend. | `backend/src/main/java/com/clinica/medica/turno/`, `frontend/src/components/turnos/` y `security/` |
+| Usuarios y seguridad | Backend implementado con BCrypt, JWT, roles y pruebas automatizadas. El frontend cuenta con inicio de sesión, validación de sesión y cierre de sesión; la administración visual de usuarios continúa pendiente. | `backend/src/main/java/com/clinica/medica/usuario/`, `security/`, `frontend/src/components/auth/` y [guía de seguridad](docs/usuarios-seguridad.md) |
 
 La API utiliza usuarios persistidos, BCrypt y JWT con permisos por rol y consultas limitadas al propio profesional. Ver [configuracion, primer administrador, pruebas y coleccion Postman](docs/usuarios-seguridad.md).
 
