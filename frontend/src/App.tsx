@@ -1,5 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Button, Container, Navbar, Spinner } from 'react-bootstrap';
+import {
+  Button,
+  Container,
+  Nav,
+  Navbar,
+  Spinner,
+} from 'react-bootstrap';
 import { consultarUsuarioActual } from './api/auth';
 import {
   eliminarToken,
@@ -8,10 +14,13 @@ import {
 } from './auth/sesion';
 import LoginPage from './components/auth/LoginPage';
 import TurnosPage from './components/turnos/TurnosPage';
+import UsuariosPage from './components/usuarios/UsuariosPage';
 import type {
   LoginResponse,
   UsuarioAutenticado,
 } from './types/auth';
+
+type Pantalla = 'turnos' | 'usuarios';
 
 function App() {
   const [token, setToken] = useState<string | null>(
@@ -22,6 +31,8 @@ function App() {
   const [cargandoSesion, setCargandoSesion] = useState(
     () => obtenerToken() !== null,
   );
+  const [pantalla, setPantalla] =
+    useState<Pantalla>('turnos');
 
   useEffect(() => {
     const tokenGuardado = obtenerToken();
@@ -59,12 +70,14 @@ function App() {
     guardarToken(respuesta.token);
     setToken(respuesta.token);
     setUsuario(respuesta.usuario);
+    setPantalla('turnos');
   }
 
   function cerrarSesion() {
     eliminarToken();
     setToken(null);
     setUsuario(null);
+    setPantalla('turnos');
   }
 
   if (cargandoSesion) {
@@ -86,28 +99,65 @@ function App() {
 
   return (
     <>
-      <Navbar bg="primary" data-bs-theme="dark">
+      <Navbar
+        bg="primary"
+        data-bs-theme="dark"
+        expand="md"
+      >
         <Container fluid>
           <Navbar.Brand>Clínica Médica</Navbar.Brand>
 
-          <div className="d-flex align-items-center gap-3 text-white">
-            <div className="text-end">
-              <div>{usuario.nombreUsuario}</div>
-              <small>{usuario.rol}</small>
-            </div>
+          <Navbar.Toggle aria-controls="navegacion-principal" />
 
-            <Button
-              variant="outline-light"
-              size="sm"
-              onClick={cerrarSesion}
-            >
-              Cerrar sesión
-            </Button>
-          </div>
+          <Navbar.Collapse id="navegacion-principal">
+            <Nav className="me-auto">
+              <Nav.Link
+                active={pantalla === 'turnos'}
+                onClick={() => setPantalla('turnos')}
+              >
+                Turnos
+              </Nav.Link>
+
+              {usuario.rol === 'ADMINISTRADOR' && (
+                <Nav.Link
+                  active={pantalla === 'usuarios'}
+                  onClick={() => setPantalla('usuarios')}
+                >
+                  Usuarios
+                </Nav.Link>
+              )}
+            </Nav>
+
+            <div className="d-flex align-items-center gap-3 text-white">
+              <div className="text-end">
+                <div>{usuario.nombreUsuario}</div>
+                <small>{usuario.rol}</small>
+              </div>
+
+              <Button
+                variant="outline-light"
+                size="sm"
+                onClick={cerrarSesion}
+              >
+                Cerrar sesión
+              </Button>
+            </div>
+          </Navbar.Collapse>
         </Container>
       </Navbar>
 
-      <TurnosPage token={token} rol={usuario.rol} />
+      {pantalla === 'usuarios' &&
+      usuario.rol === 'ADMINISTRADOR' ? (
+        <UsuariosPage
+          token={token}
+          usuarioActualId={usuario.id}
+        />
+      ) : (
+        <TurnosPage
+          token={token}
+          rol={usuario.rol}
+        />
+      )}
     </>
   );
 }
