@@ -46,7 +46,7 @@ function normalizarTexto(texto: string): string {
     .toLocaleLowerCase()
     .replace(/[^a-z0-9]+/g, ' ')
     .trim();
-}  
+}
 function PacientesPage({ token }: PacientesPageProps) {
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [cargando, setCargando] = useState(true);
