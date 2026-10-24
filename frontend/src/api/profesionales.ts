@@ -40,5 +40,6 @@ export const consultarProfesional = (token: string, id: number) => solicitar<Pro
 export const crearProfesional = (token: string, datos: ProfesionalRequest) => solicitar<Profesional>(token, '/profesionales', 'POST', datos);
 export const actualizarProfesional = (token: string, id: number, datos: ProfesionalRequest) => solicitar<Profesional>(token, `/profesionales/${id}`, 'PUT', datos);
 export const desactivarProfesional = (token: string, id: number) => solicitar<void>(token, `/profesionales/${id}`, 'DELETE');
+export const reactivarProfesional = (token: string, id: number) => solicitar<Profesional>(token, `/profesionales/${id}/reactivar`, 'PATCH');
 export const asociarEspecialidad = (token: string, id: number, especialidadId: number) => solicitar<void>(token, `/profesionales/${id}/especialidades/${especialidadId}`, 'POST');
 export const listarEspecialidadesParaProfesionales = (token: string) => solicitar<Especialidad[]>(token, '/especialidades');

@@ -23,6 +23,7 @@ test('todas las operaciones envían JWT y respetan los endpoints y métodos del 
     [() => api.crearProfesional('token-de-prueba', datos), '/api/profesionales', 'POST', datos],
     [() => api.actualizarProfesional('token-de-prueba', 7, datos), '/api/profesionales/7', 'PUT', datos],
     [() => api.desactivarProfesional('token-de-prueba', 7), '/api/profesionales/7', 'DELETE'],
+    [() => api.reactivarProfesional('token-de-prueba', 7), '/api/profesionales/7/reactivar', 'PATCH'],
     [() => api.asociarEspecialidad('token-de-prueba', 7, 3), '/api/profesionales/7/especialidades/3', 'POST'],
     [() => api.listarEspecialidadesParaProfesionales('token-de-prueba'), '/api/especialidades', 'GET'],
   ];

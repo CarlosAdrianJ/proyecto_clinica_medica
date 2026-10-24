@@ -1,6 +1,7 @@
 package com.clinica.medica.profesional.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record ProfesionalResponse(
         Long id,
@@ -10,6 +11,8 @@ public record ProfesionalResponse(
         String telefono,
         String email,
         boolean activo,
-        LocalDateTime fechaAlta
+        LocalDateTime fechaAlta,
+        List<EspecialidadAsociada> especialidades
 ) {
+    public record EspecialidadAsociada(Long id, String nombre, boolean activo) {}
 }

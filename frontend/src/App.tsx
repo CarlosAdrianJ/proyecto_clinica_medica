@@ -14,8 +14,10 @@ import {
 } from './auth/sesion';
 import LoginPage from './components/auth/LoginPage';
 import DisponibilidadPage from './components/disponibilidad/DisponibilidadPage';
+import EspecialidadesPage from './components/especialidades/EspecialidadesPage';
 import HorariosPage from './components/horarios/HorariosPage';
 import PacientesPage from './components/pacientes/PacientesPage';
+import ProfesionalesPage from './components/profesionales/ProfesionalesPage';
 import TurnosPage from './components/turnos/TurnosPage';
 import UsuariosPage from './components/usuarios/UsuariosPage';
 import type {
@@ -28,6 +30,8 @@ type Pantalla =
   | 'horarios'
   | 'disponibilidad'
   | 'pacientes'
+  | 'profesionales'
+  | 'especialidades'
   | 'usuarios';
 
 function App() {
@@ -123,26 +127,32 @@ function App() {
 
           <Navbar.Collapse id="navegacion-principal">
             <Nav className="me-auto">
+              {puedeGestionarPacientes && <Nav.Link
+                active={pantalla === 'especialidades'}
+                onClick={() => setPantalla('especialidades')}
+              >
+                Especialidades
+              </Nav.Link>}
               <Nav.Link
                 active={pantalla === 'turnos'}
                 onClick={() => setPantalla('turnos')}
               >
-                Turnos
+                {usuario.rol === 'PROFESIONAL' ? 'Mi agenda' : 'Turnos'}
               </Nav.Link>
 
-              <Nav.Link
+              {puedeGestionarPacientes && <Nav.Link
                 active={pantalla === 'horarios'}
                 onClick={() => setPantalla('horarios')}
               >
                 Horarios
-              </Nav.Link>
+              </Nav.Link>}
 
-              <Nav.Link
+              {puedeGestionarPacientes && <Nav.Link
                 active={pantalla === 'disponibilidad'}
                 onClick={() => setPantalla('disponibilidad')}
               >
                 Disponibilidad
-              </Nav.Link>
+              </Nav.Link>}
 
               {puedeGestionarPacientes && (
                 <Nav.Link
@@ -161,6 +171,12 @@ function App() {
                   Usuarios
                 </Nav.Link>
               )}
+              {puedeGestionarPacientes && <Nav.Link
+                active={pantalla === 'profesionales'}
+                onClick={() => setPantalla('profesionales')}
+              >
+                Profesionales
+              </Nav.Link>}
             </Nav>
 
             <div className="d-flex align-items-center gap-3 text-white">
@@ -181,7 +197,15 @@ function App() {
         </Container>
       </Navbar>
 
-      {pantalla === 'usuarios' &&
+      {usuario.rol === 'PROFESIONAL' ? (
+        <TurnosPage token={token} rol={usuario.rol} />
+      ) : pantalla === 'especialidades' ? (
+        <EspecialidadesPage token={token} rol={usuario.rol} />
+      ) : pantalla === 'profesionales' ? (
+        <Container fluid className="py-4">
+          <ProfesionalesPage token={token} usuario={usuario} />
+        </Container>
+      ) : pantalla === 'usuarios' &&
       usuario.rol === 'ADMINISTRADOR' ? (
         <UsuariosPage
           token={token}
