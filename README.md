@@ -143,8 +143,7 @@ entorno accesible para la demostración del proyecto.
 
 ## Estado del proyecto
 
-El proyecto se encuentra en una etapa avanzada de desarrollo. Los módulos de pacientes, profesionales, especialidades, horarios de atención, disponibilidad, turnos y usuarios y seguridad están implementados y probados en el backend. El sistema utiliza autenticación mediante JWT, contraseñas protegidas con BCrypt y control de acceso según los roles Administrador, Recepcionista y Profesional. El frontend cuenta con inicio y cierre de sesión, validación y almacenamiento de la sesión, envío del token JWT y navegación según el rol autenticado. También se encuentran integradas las pantallas de especialidades, pacientes, horarios de atención, disponibilidad, turnos, agenda profesional y administración de usuarios. Profesionales y Especialidades ya están conectadas a la navegación. El Profesional accede únicamente a Mi agenda. Profesionales muestra sus especialidades asociadas. El circuito completo se comprueba con JWT y H2; queda pendiente la comprobación visual con sesiones reales. Ver [integración y verificación del frontend](docs/integracion-frontend.md).
-
+El proyecto se encuentra en una etapa avanzada de desarrollo. Los módulos de pacientes, profesionales, especialidades, horarios de atención, disponibilidad, turnos y usuarios y seguridad están implementados y probados en el backend. El sistema utiliza autenticación mediante JWT, contraseñas protegidas con BCrypt y control de acceso según los roles Administrador, Recepcionista y Profesional. El frontend cuenta con inicio y cierre de sesión, almacenamiento y validación de la sesión, envío del token JWT y navegación según el rol autenticado. Se encuentran integradas las pantallas de especialidades, profesionales, pacientes, horarios de atención, disponibilidad, turnos, agenda profesional y administración de usuarios. La integración fue verificada visualmente con sesiones reales: el Administrador accede a todos los módulos, el Recepcionista utiliza las funciones operativas autorizadas y el Profesional consulta únicamente su propia agenda. Ver [integración y verificación del frontend](docs/integracion-frontend.md).
 ## Documentación del proyecto
 
 La documentación correspondiente al análisis y diseño se encuentra organizada en la carpeta `docs`:
@@ -350,12 +349,12 @@ Los pacientes forman parte de la información administrada por el sistema, pero 
 
 El listado anterior describe los módulos planificados para el sistema. A continuación se distingue el código implementado y subido al repositorio del trabajo que aún está en desarrollo:
 
-| Módulo | Estado al 23/10/2026 | Ubicación en el repositorio |
+| Módulo | Estado al 24/10/2026 | Ubicación en el repositorio |
 | --- | --- | --- |
 | Pacientes | Backend y frontend implementados, probados e integrados en `main`. El frontend permite listar, buscar, crear, modificar y realizar la baja lógica de pacientes. | `backend/src/main/java/com/clinica/medica/paciente/` y `frontend/src/components/pacientes/` |
-| Profesionales | Implementado, probado e integrado en `main`; endpoints verificados manualmente con Postman. | `backend/src/main/java/com/clinica/medica/profesional/` |
+| Profesionales | Backend y frontend implementados, probados e integrados en `main`. La interfaz permite al Administrador crear, modificar, desactivar y reactivar profesionales, mientras que el Recepcionista dispone de acceso de consulta. | `backend/src/main/java/com/clinica/medica/profesional/` y `frontend/src/components/profesionales/` |
 | Especialidades | Backend y frontend integrados en `main`; endpoints verificados manualmente con Postman. Cuenta con 8 pruebas automatizadas aprobadas. | `backend/src/main/java/com/clinica/medica/especialidad/` y `frontend/` |
-| Horarios de atención | Backend y frontend implementados, probados e integrados en `main`. La interfaz permite consultar, crear, modificar y desactivar horarios, con selección de horas en intervalos de 15 minutos. minutos. | `backend/src/main/java/com/clinica/medica/horario/` y `frontend/src/components/horarios/` |
+| Horarios de atención | Backend y frontend implementados, probados e integrados en `main`. La interfaz permite consultar, crear, modificar y desactivar horarios, con selección de horas en intervalos de 15 minutos. | `backend/src/main/java/com/clinica/medica/horario/` y `frontend/src/components/horarios/` |
 | Disponibilidad | Backend y frontend implementados, probados e integrados en `main`. La interfaz permite consultar los turnos disponibles de un profesional para una fecha determinada. | `backend/src/main/java/com/clinica/medica/disponibilidad/` y `frontend/src/components/disponibilidad/` |
 | Turnos | Implementado y probado; 12 pruebas automatizadas aprobadas. Creación, consulta, cancelación y reutilización de horarios verificados manualmente con Postman. | `backend/src/main/java/com/clinica/medica/turno/` |
 | Agenda | Consulta restringida del profesional implementada y probada en el backend mediante `/api/turnos/mi-agenda`; interfaz visual integrada en el frontend. | `backend/src/main/java/com/clinica/medica/turno/`, `frontend/src/components/turnos/` y `security/` |
@@ -510,7 +509,11 @@ Desde la raíz del proyecto:
 .\backend\mvnw.cmd -f .\backend\pom.xml test
 ```
 
-En la verificación del 23/10/2026 se aprobaron 101 pruebas automatizadas, sin fallos, errores ni omisiones: 69 correspondientes a los módulos funcionales, incluido Turnos, y 32 de Usuarios y Seguridad, incluidas las restricciones de acceso a la agenda profesional.
+En la verificación del 24/10/2026 se aprobaron 104 pruebas automatizadas del backend, sin fallos, errores ni omisiones: 69 correspondientes al contexto de la aplicación y a los módulos funcionales, y 35 correspondientes a Usuarios y Seguridad, incluidas las restricciones de acceso por rol y a la agenda profesional.
+
+También se aprobaron 4 pruebas automatizadas del frontend de profesionales, que verifican el envío del JWT, los endpoints y métodos HTTP utilizados y la presentación de mensajes comprensibles ante errores del backend y de red.
+
+La verificación manual con MySQL confirmó el inicio y cierre de sesión, la persistencia de la sesión después de recargar la página, la navegación según los roles Administrador, Recepcionista y Profesional, el acceso del profesional únicamente a su propia agenda, el rechazo de cuentas inactivas y la recuperación del acceso después de su reactivación.
 
 Las pruebas automatizadas utilizan H2 en memoria y no modifican la base MySQL.
 
