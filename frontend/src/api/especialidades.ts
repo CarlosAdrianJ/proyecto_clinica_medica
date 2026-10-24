@@ -4,6 +4,10 @@ const BASE_URL = '/api/especialidades';
 
 function mensajePorDefecto(status: number): string {
   switch (status) {
+    case 401:
+      return 'La sesión venció o no es válida. Volvé a iniciar sesión.';
+    case 403:
+      return 'No tenés permiso para realizar esta operación.';
     case 404:
       return 'No se encontró la especialidad.';
     case 409:
@@ -18,8 +22,9 @@ async function manejarRespuesta<T>(response: Response): Promise<T> {
     let mensaje = mensajePorDefecto(response.status);
     try {
       const cuerpo = await response.json();
-      if (cuerpo?.message) {
-        mensaje = cuerpo.message;
+      const detalle = cuerpo?.message || cuerpo?.detail;
+      if (typeof detalle === 'string' && detalle.trim()) {
+        mensaje = detalle;
       }
     } catch {
       // el backend no devolvió un cuerpo JSON legible; nos quedamos con el mensaje por defecto
@@ -34,26 +39,26 @@ async function manejarRespuesta<T>(response: Response): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export function listarEspecialidades(): Promise<Especialidad[]> {
-  return fetch(BASE_URL).then((res) => manejarRespuesta<Especialidad[]>(res));
+export function listarEspecialidades(token: string): Promise<Especialidad[]> {
+  return fetch(BASE_URL, { headers: { Authorization: `Bearer ${token}` } }).then((res) => manejarRespuesta<Especialidad[]>(res));
 }
 
-export function crearEspecialidad(datos: EspecialidadFormData): Promise<Especialidad> {
+export function crearEspecialidad(token: string, datos: EspecialidadFormData): Promise<Especialidad> {
   return fetch(BASE_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify(datos),
   }).then((res) => manejarRespuesta<Especialidad>(res));
 }
 
-export function actualizarEspecialidad(id: number, datos: EspecialidadFormData): Promise<Especialidad> {
+export function actualizarEspecialidad(token: string, id: number, datos: EspecialidadFormData): Promise<Especialidad> {
   return fetch(`${BASE_URL}/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify(datos),
   }).then((res) => manejarRespuesta<Especialidad>(res));
 }
 
-export function eliminarEspecialidad(id: number): Promise<void> {
-  return fetch(`${BASE_URL}/${id}`, { method: 'DELETE' }).then((res) => manejarRespuesta<void>(res));
+export function eliminarEspecialidad(token: string, id: number): Promise<void> {
+  return fetch(`${BASE_URL}/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } }).then((res) => manejarRespuesta<void>(res));
 }

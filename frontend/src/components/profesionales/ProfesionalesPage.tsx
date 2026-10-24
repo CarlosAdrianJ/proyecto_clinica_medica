@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Alert, Badge, Button, Form, Modal, Spinner, Table } from 'react-bootstrap';
 import { actualizarProfesional, asociarEspecialidad, consultarProfesional, crearProfesional, desactivarProfesional, listarEspecialidadesParaProfesionales, listarProfesionales } from '../../api/profesionales';
 import type { UsuarioAutenticado } from '../../types/auth';
+import { reactivarProfesional } from '../../api/profesionales';
 import type { Especialidad } from '../../types/especialidad';
 import type { Profesional, ProfesionalRequest } from '../../types/profesional';
 
@@ -17,7 +18,7 @@ export default function ProfesionalesPage({ token, usuario }: Props) {
   const [error, setError] = useState('');
   const [exito, setExito] = useState('');
   const [intento, setIntento] = useState(0);
-  const [modal, setModal] = useState<'datos' | 'especialidad' | 'baja' | null>(null);
+  const [modal, setModal] = useState<'datos' | 'especialidad' | 'baja' | 'reactivar' | null>(null);
   const [seleccionado, setSeleccionado] = useState<Profesional | null>(null);
   const [formulario, setFormulario] = useState<ProfesionalRequest>(VACIO);
   const [especialidadId, setEspecialidadId] = useState('');
@@ -43,7 +44,7 @@ export default function ProfesionalesPage({ token, usuario }: Props) {
     return () => { vigente = false; };
   }, [token, usuario.rol, usuario.profesionalId, intento]);
 
-  function abrir(tipo: 'datos' | 'especialidad' | 'baja', profesional: Profesional | null = null) {
+  function abrir(tipo: 'datos' | 'especialidad' | 'baja' | 'reactivar', profesional: Profesional | null = null) {
     if (!administrador) return;
     setSeleccionado(profesional);
     setFormulario(profesional ? {
@@ -60,7 +61,7 @@ export default function ProfesionalesPage({ token, usuario }: Props) {
   async function cargarEspecialidades(profesional: Profesional) {
     abrir('especialidad', profesional);
     setGuardando(true);
-    try { setEspecialidades((await listarEspecialidadesParaProfesionales(token)).filter(e => e.activo)); }
+    try { setEspecialidades((await listarEspecialidadesParaProfesionales(token)).filter(e => e.activo && !profesional.especialidades?.some(asociada => asociada.id === e.id))); }
     catch (err) { setErrorFormulario(mensaje(err)); }
     finally { setGuardando(false); }
   }
@@ -87,12 +88,19 @@ export default function ProfesionalesPage({ token, usuario }: Props) {
           : await crearProfesional(token, datos);
         setProfesionales(actuales => seleccionado ? actuales.map(p => p.id === resultado.id ? resultado : p) : [...actuales, resultado]);
         setExito('Profesional guardado correctamente.');
+      } else if (modal === 'reactivar' && seleccionado) {
+        const resultado = await reactivarProfesional(token, seleccionado.id);
+        setProfesionales(actuales => actuales.map(p => p.id === resultado.id ? resultado : p));
+        setExito('Profesional reactivado correctamente.');
       } else if (modal === 'baja' && seleccionado) {
         await desactivarProfesional(token, seleccionado.id);
         setProfesionales(actuales => actuales.map(p => p.id === seleccionado.id ? { ...p, activo: false } : p));
         setExito('Profesional desactivado correctamente.');
       } else if (modal === 'especialidad' && seleccionado) {
         await asociarEspecialidad(token, seleccionado.id, Number(especialidadId));
+        const especialidad = especialidades.find(e => e.id === Number(especialidadId));
+        if (especialidad) setProfesionales(actuales => actuales.map(p => p.id === seleccionado.id
+          ? { ...p, especialidades: [...(p.especialidades ?? []), especialidad] } : p));
         setExito('Especialidad asociada correctamente.');
       }
       setModal(null);
@@ -110,12 +118,14 @@ export default function ProfesionalesPage({ token, usuario }: Props) {
     {cargando ? <div role="status"><Spinner size="sm" /> Cargando profesionales...</div> : !error && (
       profesionales.length === 0 ? <Alert variant="info">No hay profesionales para mostrar.</Alert> :
       <Table responsive striped bordered hover>
-        <thead><tr><th>Nombre y apellido</th><th>Matrícula</th><th>Teléfono</th><th>Correo electrónico</th><th>Estado</th>{administrador && <th>Acciones</th>}</tr></thead>
+        <thead><tr><th>Nombre y apellido</th><th>Matrícula</th><th>Teléfono</th><th>Correo electrónico</th><th>Especialidades</th><th>Estado</th>{administrador && <th>Acciones</th>}</tr></thead>
         <tbody>{profesionales.map(p => <tr key={p.id}>
           <td>{p.nombre} {p.apellido}</td><td>{p.matricula}</td><td>{p.telefono || '—'}</td><td>{p.email || '—'}</td>
+          <td>{p.especialidades?.length ? p.especialidades.map(e => `${e.nombre}${e.activo ? '' : ' (inactiva)'}`).join(', ') : 'Sin especialidades asociadas'}</td>
           <td><Badge bg={p.activo ? 'success' : 'secondary'}>{p.activo ? 'Activo' : 'Inactivo'}</Badge></td>
           {administrador && <td><div className="d-flex flex-wrap gap-2">
             <Button size="sm" variant="outline-primary" onClick={() => abrir('datos', p)}>Editar</Button>
+            {!p.activo && <Button size="sm" variant="outline-success" onClick={() => abrir('reactivar', p)}>Reactivar</Button>}
             {p.activo && <><Button size="sm" variant="outline-secondary" onClick={() => void cargarEspecialidades(p)}>Asociar especialidad</Button>
               <Button size="sm" variant="outline-danger" onClick={() => abrir('baja', p)}>Desactivar</Button></>}
           </div></td>}
@@ -124,7 +134,7 @@ export default function ProfesionalesPage({ token, usuario }: Props) {
     )}
     {administrador && <Modal show={modal !== null} onHide={() => { if (!guardando) setModal(null); }} backdrop={guardando ? 'static' : true} keyboard={!guardando}>
       <Form onSubmit={guardar}>
-        <Modal.Header closeButton={!guardando}><Modal.Title>{modal === 'baja' ? 'Desactivar profesional' : modal === 'especialidad' ? 'Asociar especialidad' : seleccionado ? 'Editar profesional' : 'Nuevo profesional'}</Modal.Title></Modal.Header>
+        <Modal.Header closeButton={!guardando}><Modal.Title>{modal === 'reactivar' ? 'Reactivar profesional' : modal === 'baja' ? 'Desactivar profesional' : modal === 'especialidad' ? 'Asociar especialidad' : seleccionado ? 'Editar profesional' : 'Nuevo profesional'}</Modal.Title></Modal.Header>
         <Modal.Body>
           {errorFormulario && <Alert variant="danger">{errorFormulario}</Alert>}
           <fieldset disabled={guardando}>
@@ -137,6 +147,7 @@ export default function ProfesionalesPage({ token, usuario }: Props) {
               </Form.Group>;
             })}
             {modal === 'baja' && <p>¿Querés desactivar a {seleccionado?.nombre} {seleccionado?.apellido}? Se conservará su registro como inactivo.</p>}
+            {modal === 'reactivar' && <p>¿Querés reactivar a {seleccionado?.nombre} {seleccionado?.apellido}? Se conservarán sus datos, especialidades y horarios existentes.</p>}
             {modal === 'especialidad' && <Form.Group controlId="profesional-especialidad">
               <p>Profesional: {seleccionado?.nombre} {seleccionado?.apellido}</p>
               <Form.Label>Especialidad activa</Form.Label>
@@ -144,14 +155,14 @@ export default function ProfesionalesPage({ token, usuario }: Props) {
                 <option value="">Seleccioná una especialidad</option>
                 {especialidades.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
               </Form.Select>
-              {!guardando && especialidades.length === 0 && <p className="mt-2">No hay especialidades disponibles. Cerrá y volvé a abrir para reintentar la consulta.</p>}
+              {!guardando && especialidades.length === 0 && <p className="mt-2">No hay especialidades activas nuevas para asociar. Si hubo un error, cerrá y volvé a abrir para reintentar.</p>}
             </Form.Group>}
           </fieldset>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" disabled={guardando} onClick={() => setModal(null)}>Cancelar</Button>
           <Button type="submit" variant={modal === 'baja' ? 'danger' : 'primary'} disabled={guardando || (modal === 'especialidad' && !especialidadId)}>
-            {guardando ? <><Spinner size="sm" /> Procesando...</> : modal === 'baja' ? 'Desactivar' : modal === 'especialidad' ? 'Asociar' : 'Guardar'}
+            {guardando ? <><Spinner size="sm" /> Procesando...</> : modal === 'reactivar' ? 'Reactivar' : modal === 'baja' ? 'Desactivar' : modal === 'especialidad' ? 'Asociar' : 'Guardar'}
           </Button>
         </Modal.Footer>
       </Form>

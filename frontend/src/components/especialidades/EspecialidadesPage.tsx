@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Alert, Button, Form, Modal, Spinner, Table } from 'react-bootstrap';
 import type { Especialidad, EspecialidadFormData } from '../../types/especialidad';
+import type { Rol } from '../../types/auth';
 import {
   listarEspecialidades,
   crearEspecialidad,
@@ -10,7 +11,8 @@ import {
 
 const FORM_VACIO: EspecialidadFormData = { nombre: '', descripcion: '' };
 
-function EspecialidadesPage() {
+function EspecialidadesPage({ token, rol }: { token: string; rol: Rol }) {
+  const administrador = rol === 'ADMINISTRADOR';
   const [especialidades, setEspecialidades] = useState<Especialidad[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -22,14 +24,19 @@ function EspecialidadesPage() {
   const [errorFormulario, setErrorFormulario] = useState<string | null>(null);
 
   useEffect(() => {
-    cargarEspecialidades();
-  }, []);
+    let vigente = true;
+    listarEspecialidades(token)
+      .then(datos => { if (vigente) setEspecialidades(datos); })
+      .catch(err => { if (vigente) setError(err instanceof Error ? err.message : 'No se pudieron cargar las especialidades.'); })
+      .finally(() => { if (vigente) setCargando(false); });
+    return () => { vigente = false; };
+  }, [token]);
 
   async function cargarEspecialidades() {
     setCargando(true);
     setError(null);
     try {
-      const datos = await listarEspecialidades();
+      const datos = await listarEspecialidades(token);
       setEspecialidades(datos);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudieron cargar las especialidades.');
@@ -53,18 +60,25 @@ function EspecialidadesPage() {
   }
 
   function cerrarModal() {
+    if (guardando) return;
     setMostrarModal(false);
   }
 
   async function guardarEspecialidad(evento: FormEvent) {
     evento.preventDefault();
+    if (!administrador || guardando) return;
+    const datos = { nombre: formulario.nombre.trim(), descripcion: formulario.descripcion.trim() };
+    if (!datos.nombre) {
+      setErrorFormulario('El nombre es obligatorio.');
+      return;
+    }
     setGuardando(true);
     setErrorFormulario(null);
     try {
       if (especialidadEditando) {
-        await actualizarEspecialidad(especialidadEditando.id, formulario);
+        await actualizarEspecialidad(token, especialidadEditando.id, datos);
       } else {
-        await crearEspecialidad(formulario);
+        await crearEspecialidad(token, datos);
       }
       setMostrarModal(false);
       await cargarEspecialidades();
@@ -76,11 +90,12 @@ function EspecialidadesPage() {
   }
 
   async function darDeBaja(especialidad: Especialidad) {
+    if (!administrador) return;
     const confirmar = window.confirm(`¿Dar de baja la especialidad "${especialidad.nombre}"?`);
     if (!confirmar) return;
 
     try {
-      await eliminarEspecialidad(especialidad.id);
+      await eliminarEspecialidad(token, especialidad.id);
       await cargarEspecialidades();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo dar de baja la especialidad.');
@@ -91,7 +106,7 @@ function EspecialidadesPage() {
     <div className="container py-4">
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h1 className="h3 mb-0">Especialidades</h1>
-        <Button onClick={abrirModalCrear}>Nueva especialidad</Button>
+        {administrador && <Button onClick={abrirModalCrear}>Nueva especialidad</Button>}
       </div>
 
       {error && (
@@ -112,7 +127,7 @@ function EspecialidadesPage() {
             <tr>
               <th>Nombre</th>
               <th>Descripción</th>
-              <th></th>
+              {administrador && <th>Acciones</th>}
             </tr>
           </thead>
           <tbody>
@@ -120,7 +135,7 @@ function EspecialidadesPage() {
               <tr key={especialidad.id}>
                 <td>{especialidad.nombre}</td>
                 <td>{especialidad.descripcion || '—'}</td>
-                <td className="text-end">
+                {administrador && <td className="text-end">
                   <Button
                     size="sm"
                     variant="outline-secondary"
@@ -129,28 +144,19 @@ function EspecialidadesPage() {
                   >
                     Editar
                   </Button>
-                  <Button
-                    size="sm"
-                    variant="outline-secondary"
-                    className="me-2"
-                    disabled
-                    title="Se habilita cuando esté el endpoint de asociación profesional-especialidad"
-                  >
-                    Profesionales asociados
-                  </Button>
                   <Button size="sm" variant="outline-danger" onClick={() => darDeBaja(especialidad)}>
                     Dar de baja
                   </Button>
-                </td>
+                </td>}
               </tr>
             ))}
           </tbody>
         </Table>
       )}
 
-      <Modal show={mostrarModal} onHide={cerrarModal}>
+      <Modal show={administrador && mostrarModal} onHide={cerrarModal} backdrop={guardando ? 'static' : true} keyboard={!guardando}>
         <Form onSubmit={guardarEspecialidad}>
-          <Modal.Header closeButton>
+          <Modal.Header closeButton={!guardando}>
             <Modal.Title>{especialidadEditando ? 'Editar especialidad' : 'Nueva especialidad'}</Modal.Title>
           </Modal.Header>
           <Modal.Body>
@@ -160,6 +166,8 @@ function EspecialidadesPage() {
               <Form.Control
                 type="text"
                 required
+                maxLength={100}
+                disabled={guardando}
                 value={formulario.nombre}
                 onChange={(e) => setFormulario({ ...formulario, nombre: e.target.value })}
               />
@@ -169,6 +177,8 @@ function EspecialidadesPage() {
               <Form.Control
                 as="textarea"
                 rows={3}
+                maxLength={200}
+                disabled={guardando}
                 value={formulario.descripcion}
                 onChange={(e) => setFormulario({ ...formulario, descripcion: e.target.value })}
               />

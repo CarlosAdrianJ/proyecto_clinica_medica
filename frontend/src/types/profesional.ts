@@ -7,6 +7,7 @@ export interface Profesional {
   email: string | null;
   activo: boolean;
   fechaAlta: string;
+  especialidades: { id: number; nombre: string; activo: boolean }[];
 }
 
 export interface ProfesionalRequest {

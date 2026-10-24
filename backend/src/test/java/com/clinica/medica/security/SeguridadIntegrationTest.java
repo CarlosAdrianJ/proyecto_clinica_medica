@@ -76,6 +76,99 @@ class SeguridadIntegrationTest {
     }
 
     @Test
+    void soloAdminReactivaProfesionalConservandoDatos() throws Exception {
+        String admin = "Bearer " + login("admin");
+        Long id = ajeno.getId();
+        mvc.perform(delete("/api/profesionales/" + id).header("Authorization", admin))
+                .andExpect(status().isNoContent());
+        for (String nombre : new String[] { "recepcion", "profesional" }) {
+            mvc.perform(patch("/api/profesionales/" + id + "/reactivar")
+                    .header("Authorization", "Bearer " + login(nombre)))
+                    .andExpect(status().isForbidden());
+        }
+        mvc.perform(patch("/api/profesionales/" + id + "/reactivar"))
+                .andExpect(status().isUnauthorized());
+        mvc.perform(patch("/api/profesionales/" + id + "/reactivar").header("Authorization", admin))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.activo").value(true))
+                .andExpect(jsonPath("$.id").value(id.intValue()))
+                .andExpect(jsonPath("$.matricula").value("MP2"));
+        mvc.perform(get("/api/profesionales/" + id).header("Authorization", admin))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.activo").value(true));
+        mvc.perform(patch("/api/profesionales/" + id + "/reactivar").header("Authorization", admin))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.activo").value(true));
+        mvc.perform(patch("/api/profesionales/999999/reactivar").header("Authorization", admin))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void circuitoCompletoDeTurnosConJwtYAgendaPropia() throws Exception {
+        String admin = "Bearer " + login("admin");
+        String recepcion = "Bearer " + login("recepcion");
+        String especialidadJson = mvc.perform(post("/api/especialidades").header("Authorization", admin)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"nombre\":\"Especialidad circuito\",\"descripcion\":\"Prueba integral\"}"))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        Number especialidadId = JsonPath.read(especialidadJson, "$.id");
+        String profesionalJson = mvc.perform(post("/api/profesionales").header("Authorization", admin)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"nombre\":\"Medica\",\"apellido\":\"Circuito\",\"matricula\":\"CIRCUITO-1\"}"))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        Number profesionalId = JsonPath.read(profesionalJson, "$.id");
+        crear("medico-circuito", Rol.PROFESIONAL, profesionales.findById(profesionalId.longValue()).orElseThrow());
+        mvc.perform(post("/api/profesionales/" + profesionalId + "/especialidades/" + especialidadId)
+                .header("Authorization", admin)).andExpect(status().isNoContent());
+        mvc.perform(get("/api/profesionales/" + profesionalId).header("Authorization", recepcion))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.especialidades[0].id").value(especialidadId.intValue()))
+                .andExpect(jsonPath("$.especialidades[0].nombre").value("Especialidad circuito"))
+                .andExpect(jsonPath("$.especialidades[0].activo").value(true));
+        java.time.LocalDate fecha = java.time.LocalDate.now().plusDays(7);
+        String dia = new String[] { "LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES", "SABADO", "DOMINGO" }
+                [fecha.getDayOfWeek().getValue() - 1];
+        mvc.perform(post("/api/horarios-atencion").header("Authorization", admin)
+                .contentType(MediaType.APPLICATION_JSON).content("""
+                        {"profesionalId":%s,"diaSemana":"%s","horaDesde":"09:00","horaHasta":"10:00","duracionTurno":30}
+                        """.formatted(profesionalId, dia))).andExpect(status().isCreated());
+        String pacienteJson = mvc.perform(post("/api/pacientes").header("Authorization", recepcion)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"nombre\":\"Paciente\",\"apellido\":\"Circuito\",\"dni\":\"99000001\"}"))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        Number pacienteId = JsonPath.read(pacienteJson, "$.id");
+        mvc.perform(get("/api/disponibilidad").header("Authorization", recepcion)
+                .param("profesionalId", profesionalId.toString()).param("fecha", fecha.toString()))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.franjas.length()").value(2));
+        String solicitud = """
+                {"pacienteId":%s,"profesionalId":%s,"especialidadId":%s,"fecha":"%s","horaInicio":"09:00"}
+                """.formatted(pacienteId, profesionalId, especialidadId, fecha);
+        String turnoJson = mvc.perform(post("/api/turnos").header("Authorization", recepcion)
+                .contentType(MediaType.APPLICATION_JSON).content(solicitud))
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.estado").value("PENDIENTE"))
+                .andReturn().getResponse().getContentAsString();
+        Number turnoId = JsonPath.read(turnoJson, "$.id");
+        mvc.perform(post("/api/turnos").header("Authorization", recepcion)
+                .contentType(MediaType.APPLICATION_JSON).content(solicitud)).andExpect(status().isConflict());
+        mvc.perform(get("/api/disponibilidad").header("Authorization", recepcion)
+                .param("profesionalId", profesionalId.toString()).param("fecha", fecha.toString()))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.franjas.length()").value(1));
+        mvc.perform(get("/api/turnos/mi-agenda").header("Authorization", "Bearer " + login("medico-circuito")))
+                .andExpect(status().isOk()).andExpect(jsonPath("$[0].id").value(turnoId.intValue()))
+                .andExpect(jsonPath("$.length()").value(1));
+        mvc.perform(get("/api/turnos/mi-agenda").header("Authorization", "Bearer " + login("profesional")))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(0));
+        mvc.perform(put("/api/turnos/" + turnoId + "/reprogramar").header("Authorization", recepcion)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"fecha\":\"" + fecha + "\",\"horaInicio\":\"09:30\"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.horaInicio").value("09:30:00"));
+        mvc.perform(patch("/api/turnos/" + turnoId + "/cancelar").header("Authorization", recepcion))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.estado").value("CANCELADO"));
+        mvc.perform(get("/api/disponibilidad").header("Authorization", recepcion)
+                .param("profesionalId", profesionalId.toString()).param("fecha", fecha.toString()))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.franjas.length()").value(2));
+        mvc.perform(post("/api/turnos").header("Authorization", recepcion)
+                .contentType(MediaType.APPLICATION_JSON).content(solicitud)).andExpect(status().isCreated());
+    }
+
+    @Test
     void loginEmiteJwtYPermiteConsultarIdentidad() throws Exception {
         String token = login("ADMIN");
         assertEquals(3, token.split("\\.").length);

@@ -63,6 +63,12 @@ public class ProfesionalController {
         return ResponseEntity.noContent().build();
     }
 
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PatchMapping("/{id}/reactivar")
+    public ProfesionalResponse reactivar(@PathVariable Long id) {
+        return profesionalService.reactivar(id);
+    }
+
     @PostMapping("/{profesionalId}/especialidades/{especialidadId}")
     public ResponseEntity<Void> asociarEspecialidad(
             @PathVariable Long profesionalId,

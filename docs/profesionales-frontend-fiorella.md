@@ -8,7 +8,7 @@ Se exporta por defecto `ProfesionalesPage` desde
 `frontend/src/components/profesionales/ProfesionalesPage.tsx`.
 Recibe `token: string` y `usuario: UsuarioAutenticado` (el usuario de la sesión).
 Al integrarla, usar `<ProfesionalesPage token={token} usuario={usuario} />`.
-`App.tsx` no fue modificado: la pantalla todavía no aparece en la navegación.
+`App.tsx` ya integra la pantalla para Administrador y Recepcionista. El Profesional accede únicamente a Mi agenda. Ver [integración y verificación del frontend](integracion-frontend.md).
 
 - Administrador: lista, crea, edita, desactiva y asocia especialidades activas.
 - Recepcionista: consulta la lista sin acciones de modificación.
@@ -20,9 +20,7 @@ Al integrarla, usar `<ProfesionalesPage token={token} usuario={usuario} />`.
   catálogo de especialidades. Se utilizan los endpoints existentes.
 - Hay indicadores de carga, bloqueo durante el guardado, confirmación de baja,
   mensajes de éxito, errores del backend y reintento de la lista.
-- El backend no devuelve especialidades en `ProfesionalResponse`. La asociación
-  se confirma al completar el POST; si ya existe, se muestra el conflicto.
-  No se inventó un endpoint para consultar asociaciones.
+- El backend devuelve las especialidades asociadas en `ProfesionalResponse`, con id, nombre y estado. La tabla las muestra, identifica las inactivas y actualiza la asociación al completar el POST. El selector excluye las ya asociadas.
 
 ## Revisión de Usuarios y Seguridad
 
@@ -40,12 +38,7 @@ rechazo de cuentas inactivas, revocación de JWT y agenda propia. Se añadió un
 que comprueba reactivación, cambio de contraseña, rechazo de la contraseña anterior
 y acceso con la nueva.
 
-**Pendiente para la integración de Carlos:** la navegación actual muestra Horarios
-y Disponibilidad también al profesional. Esto no coincide con la indicación de
-que acceda solamente a su agenda. El backend restringe esas consultas a sus propios
-datos, pero se debe ajustar la navegación y el renderizado en `App.tsx` según el
-criterio acordado. También debe incorporar Profesionales para administrador y
-recepcionista, y decidir dónde ofrecer el perfil propio del profesional.
+**Integración completada:** Profesionales y Especialidades aparecen para Administrador y Recepcionista; sólo el Administrador puede modificar estos catálogos. El Profesional ve únicamente Mi agenda y el renderizado impide abrir los otros módulos desde el estado de navegación. El backend mantiene sus controles de acceso existentes.
 
 ## Verificación
 
@@ -59,8 +52,7 @@ recepcionista, y decidir dónde ofrecer el perfil propio del profesional.
 - `git diff --check`: sin errores.
 - Se reparó la instalación local con `npm ci --ignore-scripts --no-audit --no-fund`;
   no se modificaron `package.json` ni `package-lock.json`.
-- La validación interactiva de pantallas con sesiones reales queda pendiente de
-  integrar la navegación; no se presenta la revisión de código como prueba visual.
+- La navegación ya está integrada. La comprobación visual con sesiones reales sigue pendiente porque esta sesión no dispone de un navegador conectado. El circuito de integración se comprueba con JWT y H2; ver [detalle y pasos manuales](integracion-frontend.md).
 
 La carpeta `.vscode/` era preexistente y se deja fuera de esta entrega.
 No se añadieron credenciales reales ni datos privados; las credenciales de las

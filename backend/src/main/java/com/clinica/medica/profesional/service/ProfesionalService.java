@@ -85,6 +85,13 @@ public class ProfesionalService {
     }
 
     @Transactional
+    public ProfesionalResponse reactivar(Long id) {
+        Profesional profesional = obtenerProfesional(id);
+        profesional.setActivo(true);
+        return convertirAResponse(profesionalRepository.save(profesional));
+    }
+
+    @Transactional
     public void eliminar(Long id) {
         Profesional profesional = obtenerProfesional(id);
         profesional.setActivo(false);
@@ -146,7 +153,11 @@ public class ProfesionalService {
                 profesional.getTelefono(),
                 profesional.getEmail(),
                 profesional.getActivo(),
-                profesional.getFechaAlta()
+                profesional.getFechaAlta(),
+                profesional.getEspecialidades().stream()
+                        .sorted(java.util.Comparator.comparing(Especialidad::getNombre))
+                        .map(e -> new ProfesionalResponse.EspecialidadAsociada(e.getId(), e.getNombre(), e.isActivo()))
+                        .toList()
         );
     }
 }
