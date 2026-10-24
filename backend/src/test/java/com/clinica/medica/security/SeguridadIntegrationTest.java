@@ -171,6 +171,26 @@ class SeguridadIntegrationTest {
     }
 
     @Test
+    void administradorReactivaUsuarioYCambiaSuContrasena() throws Exception {
+        String token = login("admin");
+        Usuario recepcion = usuarios.findByNombreUsuario("recepcion").orElseThrow();
+        mvc.perform(delete("/api/usuarios/" + recepcion.getId())
+                .header("Authorization", "Bearer " + token))
+                .andExpect(status().isNoContent());
+        mvc.perform(put("/api/usuarios/" + recepcion.getId())
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(cuerpo("recepcion", "RECEPCIONISTA", "null")))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.activo").value(true));
+        mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"nombreUsuario\":\"recepcion\",\"contrasena\":\"Prueba123!\"}"))
+                .andExpect(status().isUnauthorized());
+        mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"nombreUsuario\":\"recepcion\",\"contrasena\":\"Nueva123!\"}"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     void duplicadosEInvariantesDeAsociacion() throws Exception {
         String token = login("admin");
         mvc.perform(

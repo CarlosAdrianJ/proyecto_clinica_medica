@@ -31,8 +31,9 @@ async function manejarRespuesta<T>(response: Response): Promise<T> {
     try {
       const cuerpo = await response.json();
 
-      if (typeof cuerpo?.message === 'string' && cuerpo.message.trim()) {
-        mensaje = cuerpo.message;
+      const detalle = cuerpo?.message ?? cuerpo?.detail;
+      if (typeof detalle === 'string' && detalle.trim()) {
+        mensaje = detalle;
       }
     } catch {
       mensaje = mensajePorEstado(response.status);
