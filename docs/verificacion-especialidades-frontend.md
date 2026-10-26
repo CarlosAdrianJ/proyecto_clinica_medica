@@ -32,20 +32,20 @@ Estado: **Aprobado**, **Corregido** (falló y se corrigió en otra rama) u **Obs
 
 | # | Rol | Caso | Resultado esperado | Resultado obtenido | Estado |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Administrador | Ingresar a Especialidades | Se muestra la lista y el botón "Nueva especialidad", sin errores |  |  |
-| 2 | Administrador | Crear "Cardiología" con descripción | Se cierra el modal y aparece en la lista |  |  |
-| 3 | Administrador | Crear sin nombre o sólo con espacios | El modal no se envía y muestra "El nombre es obligatorio." |  |  |
-| 4 | Administrador | Escribir más de 100 caracteres en nombre o 200 en descripción | El campo no deja escribir más del límite |  |  |
-| 5 | Administrador | Crear otra "Cardiología" | Mensaje de nombre duplicado dentro del modal, sin cerrarlo |  |  |
-| 6 | Administrador | Editar nombre y descripción | Se guardan y la tabla se actualiza |  |  |
-| 7 | Administrador | Editar usando el nombre de otra especialidad | Mensaje de nombre duplicado, sin cambios |  |  |
-| 8 | Administrador | Dar de baja y cancelar la confirmación | No se elimina nada |  |  |
-| 9 | Administrador | Dar de baja y aceptar | Desaparece de la lista |  |  |
-| 10 | Administrador | Recargar la página (F5) | La sesión sigue activa y se ven los últimos cambios |  |  |
-| 11 | Administrador | Crear otra vez el nombre dado de baja | Ver observación 1 |  | Observado |
-| 12 | Recepcionista | Ingresar a Especialidades | Ve la lista, sin "Nueva especialidad" ni columna Acciones |  |  |
-| 13 | Profesional | Revisar el menú | Sólo aparece "Mi agenda"; no hay acceso a Especialidades |  |  |
-| 14 | Todos | Revisar la consola y la pestaña Red (F12) durante las operaciones correctas | Sin 401, 403, 404, 409 ni "Failed to fetch" |  |  |
+| 1 | Administrador | Ingresar a Especialidades | Se muestra la lista y el botón "Nueva especialidad", sin errores | Sin especialidades cargadas, muestra "No hay especialidades cargadas todavía." y el botón (captura 1) | Aprobado |
+| 2 | Administrador | Crear "Cardiología" con descripción | Se cierra el modal y aparece en la lista | Según lo esperado | Aprobado |
+| 3 | Administrador | Crear sin nombre o sólo con espacios | El modal no se envía y muestra "El nombre es obligatorio." | Con el campo vacío, el navegador bloquea el envío ("Completa este campo", captura 2). Con sólo espacios, la app muestra "El nombre es obligatorio." | Aprobado |
+| 4 | Administrador | Escribir más de 100 caracteres en nombre o 200 en descripción | El campo no deja escribir más del límite | Según lo esperado | Aprobado |
+| 5 | Administrador | Crear otra "Cardiología" | Mensaje de nombre duplicado dentro del modal, sin cerrarlo | Se muestra "Ya existe una especialidad con ese nombre" y el modal sigue abierto (captura 3) | Aprobado |
+| 6 | Administrador | Editar nombre y descripción | Se guardan y la tabla se actualiza | Según lo esperado | Aprobado |
+| 7 | Administrador | Editar usando el nombre de otra especialidad | Mensaje de nombre duplicado, sin cambios | Según lo esperado | Aprobado |
+| 8 | Administrador | Dar de baja y cancelar la confirmación | No se elimina nada | Según lo esperado | Aprobado |
+| 9 | Administrador | Dar de baja y aceptar | Desaparece de la lista | Según lo esperado | Aprobado |
+| 10 | Administrador | Recargar la página (F5) | La sesión sigue activa y se ven los últimos cambios | Según lo esperado | Aprobado |
+| 11 | Administrador | Crear otra vez el nombre dado de baja | Ver observación 1 | Responde 409 "Ya existe una especialidad con ese nombre", aunque no figura en la lista | Observado |
+| 12 | Recepcionista | Ingresar a Especialidades | Ve la lista, sin "Nueva especialidad" ni columna Acciones | Ve la lista sin botones ni columna Acciones (captura 4) | Aprobado |
+| 13 | Profesional | Revisar el menú | Sólo aparece "Mi agenda"; no hay acceso a Especialidades | El menú sólo ofrece "Mi agenda" (captura 5) | Aprobado |
+| 14 | Todos | Revisar la consola y la pestaña Red (F12) durante las operaciones correctas | Sin 401, 403, 404, 409 ni "Failed to fetch" | Según lo esperado | Aprobado |
 
 ## Casos probados contra la API (Postman)
 
@@ -104,24 +104,35 @@ No se corrigieron en esta rama. Si se decide corregirlas, se hará en una rama e
 
 ## Capturas
 
-Las capturas no muestran contraseñas ni tokens.
+Las capturas no muestran contraseñas ni tokens. Se tomaron con el tema visual propuesto en la rama `feature/estilos-frontend-valentina`, que sólo cambia CSS: el comportamiento es el mismo que en `main`.
 
-[CAPTURA 1: Especialidades como Administrador, con la lista y el botón "Nueva especialidad"]
+**1. Administrador al ingresar, sin especialidades cargadas**
 
-[CAPTURA 2: Modal "Nueva especialidad" con el error "El nombre es obligatorio."]
+![Especialidades como Administrador](capturas/especialidades/01-admin-lista.png)
 
-[CAPTURA 3: Modal con el mensaje de nombre duplicado]
+**2. Nombre obligatorio: el navegador impide guardar con el campo vacío**
 
-[CAPTURA 4: Especialidades como Recepcionista, sin acciones]
+![Nombre obligatorio](capturas/especialidades/02-nombre-obligatorio.png)
 
-[CAPTURA 5: Menú del Profesional, con sólo "Mi agenda"]
+**3. Nombre duplicado**
 
-[CAPTURA 6: Resultado de Newman en la terminal]
+![Nombre duplicado](capturas/especialidades/03-duplicado.png)
 
-[CAPTURA 7: Resultado de build, lint y pruebas]
+**4. Recepcionista: sólo consulta, sin acciones**
+
+![Especialidades como Recepcionista](capturas/especialidades/04-recepcionista.png)
+
+**5. Profesional: el menú sólo ofrece Mi agenda**
+
+![Menú del Profesional](capturas/especialidades/05-profesional.png)
+
+**6. Colección Postman con Newman: 42 solicitudes, 49 verificaciones, 0 fallos**
+
+![Resultado de Newman](capturas/especialidades/06-newman.png)
 
 ## Archivos de la entrega
 
 - `docs/verificacion-especialidades-frontend.md` (este documento).
 - `docs/especialidades.postman_collection.json` (nuevo).
 - `frontend/tests/especialidades.test.mjs` (nuevo).
+- `docs/capturas/especialidades/` (6 capturas).
