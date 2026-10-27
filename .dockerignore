@@ -1,0 +1,13 @@
+.git
+.github
+.vscode
+.idea
+
+**/node_modules
+frontend/dist
+backend/target
+
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
