@@ -1,6 +1,6 @@
 import type { Especialidad, EspecialidadFormData } from '../types/especialidad';
 
-const BASE_URL = '/api/especialidades';
+const BASE_URL = `${import.meta.env?.VITE_API_URL ?? ''}/api/especialidades`;
 
 function mensajePorDefecto(status: number): string {
   switch (status) {

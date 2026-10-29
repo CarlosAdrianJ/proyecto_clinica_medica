@@ -1,7 +1,8 @@
 import type { Profesional, ProfesionalRequest } from '../types/profesional';
 import type { Especialidad } from '../types/especialidad';
 
-const URL = '/api';
+const API_ORIGIN = (import.meta.env?.VITE_API_URL ?? '').replace(/\/+$/, '');
+const URL = `${API_ORIGIN}/api`;
 
 async function solicitar<T>(token: string, ruta: string, method = 'GET', datos?: ProfesionalRequest): Promise<T> {
   let respuesta: Response;

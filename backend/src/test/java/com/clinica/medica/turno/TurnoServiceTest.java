@@ -29,6 +29,9 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.*;
 
 class TurnoServiceTest {
@@ -89,7 +92,7 @@ class TurnoServiceTest {
         horario.setActivo(true);
 
         fechaLunes = LocalDate.now()
-                .with(TemporalAdjusters.nextOrSame(DayOfWeek.MONDAY));
+                .with(TemporalAdjusters.next(DayOfWeek.MONDAY));
 
         when(turnoRepository.save(any(Turno.class)))
                 .thenAnswer(invocacion -> {

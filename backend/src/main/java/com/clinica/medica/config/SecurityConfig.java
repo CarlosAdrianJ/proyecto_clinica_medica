@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -20,9 +21,14 @@ import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Base64;
 
 @Configuration
@@ -69,11 +75,50 @@ public class SecurityConfig {
     }
 
     @Bean
+    CorsConfigurationSource corsConfigurationSource(
+            @Value("${app.cors.allowed-origins:http://localhost:5173}")
+            String origenesPermitidos
+    ) {
+        List<String> origenes = Arrays.stream(
+                        origenesPermitidos.split(",")
+                )
+                .map(String::trim)
+                .filter(origen -> !origen.isEmpty())
+                .toList();
+
+        CorsConfiguration configuracion = new CorsConfiguration();
+        configuracion.setAllowedOrigins(origenes);
+        configuracion.setAllowedMethods(List.of(
+                "GET",
+                "POST",
+                "PUT",
+                "DELETE",
+                "OPTIONS"
+        ));
+        configuracion.setAllowedHeaders(List.of(
+                "Authorization",
+                "Content-Type"
+        ));
+        configuracion.setAllowCredentials(false);
+        configuracion.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource origenConfigurado =
+                new UrlBasedCorsConfigurationSource();
+        origenConfigurado.registerCorsConfiguration(
+                "/**",
+                configuracion
+        );
+
+        return origenConfigurado;
+    }
+
+    @Bean
     SecurityFilterChain securityFilterChain(
             HttpSecurity http,
             UsuarioJwtConverter converter
     ) throws Exception {
         return http
+                .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(
@@ -83,6 +128,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .dispatcherTypeMatchers(
                                 DispatcherType.ERROR
+                        ).permitAll()
+                        .requestMatchers(
+                                HttpMethod.OPTIONS,
+                                "/**"
                         ).permitAll()
                         .requestMatchers(
                                 "/",

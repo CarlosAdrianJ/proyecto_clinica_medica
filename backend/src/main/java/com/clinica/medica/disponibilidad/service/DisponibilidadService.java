@@ -17,12 +17,25 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
 @Service
 public class DisponibilidadService {
+
+    private static final ZoneId ZONA_CLINICA =
+            ZoneId.of("America/Argentina/Buenos_Aires");
+
+    private static final LocalTime HORA_APERTURA =
+            LocalTime.of(8, 0);
+
+    private static final LocalTime CIERRE_LUNES_A_VIERNES =
+            LocalTime.of(20, 0);
+
+    private static final LocalTime CIERRE_SABADO =
+            LocalTime.of(12, 0);
 
     private final ProfesionalRepository profesionalRepository;
     private final HorarioAtencionRepository horarioAtencionRepository;
@@ -55,7 +68,26 @@ public class DisponibilidadService {
             );
         }
 
-        DiaSemana diaSemana = convertirDiaSemana(fecha.getDayOfWeek());
+        LocalDate hoy = LocalDate.now(ZONA_CLINICA);
+
+        if (fecha.isBefore(hoy)
+                || fecha.getDayOfWeek() == DayOfWeek.SUNDAY) {
+            return new DisponibilidadResponse(
+                    profesionalId,
+                    fecha,
+                    List.of()
+            );
+        }
+
+        DayOfWeek dia = fecha.getDayOfWeek();
+        DiaSemana diaSemana = convertirDiaSemana(dia);
+        LocalTime horaCierre = dia == DayOfWeek.SATURDAY
+                ? CIERRE_SABADO
+                : CIERRE_LUNES_A_VIERNES;
+
+        LocalTime horaActual = fecha.equals(hoy)
+                ? LocalTime.now(ZONA_CLINICA)
+                : null;
 
         List<HorarioAtencion> horarios =
                 horarioAtencionRepository
@@ -78,7 +110,9 @@ public class DisponibilidadService {
                         generarFranjas(
                                 horario,
                                 turnosOcupados,
-                                franjas
+                                franjas,
+                                horaCierre,
+                                horaActual
                         )
                 );
 
@@ -92,18 +126,30 @@ public class DisponibilidadService {
     private void generarFranjas(
             HorarioAtencion horario,
             List<Turno> turnosOcupados,
-            List<FranjaDisponibleResponse> franjas
+            List<FranjaDisponibleResponse> franjas,
+            LocalTime horaCierre,
+            LocalTime horaActual
     ) {
         LocalTime horaInicio = horario.getHoraDesde();
 
-        while (!horaInicio
-                .plusMinutes(horario.getDuracionTurno())
-                .isAfter(horario.getHoraHasta())) {
-
+        while (true) {
             LocalTime horaFin =
                     horaInicio.plusMinutes(horario.getDuracionTurno());
 
-            if (!estaOcupada(horaInicio, horaFin, turnosOcupados)) {
+            if (horaFin.isAfter(horario.getHoraHasta())) {
+                break;
+            }
+
+            boolean dentroDelHorarioClinica =
+                    !horaInicio.isBefore(HORA_APERTURA)
+                            && !horaFin.isAfter(horaCierre);
+
+            boolean noPasoLaHora =
+                    horaActual == null || horaInicio.isAfter(horaActual);
+
+            if (dentroDelHorarioClinica
+                    && noPasoLaHora
+                    && !estaOcupada(horaInicio, horaFin, turnosOcupados)) {
                 franjas.add(new FranjaDisponibleResponse(
                         horaInicio,
                         horaFin

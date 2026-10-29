@@ -14,8 +14,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,6 +28,9 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 class DisponibilidadServiceTest {
+
+    private static final ZoneId ZONA_CLINICA =
+            ZoneId.of("America/Argentina/Buenos_Aires");
 
     private ProfesionalRepository profesionalRepository;
     private HorarioAtencionRepository horarioAtencionRepository;
@@ -52,7 +58,8 @@ class DisponibilidadServiceTest {
         profesional.setMatricula("MP-100");
         profesional.setActivo(true);
 
-        fechaConsulta = LocalDate.of(2026, 10, 5);
+        fechaConsulta = LocalDate.now(ZONA_CLINICA)
+                .with(TemporalAdjusters.next(DayOfWeek.MONDAY));
 
         when(turnoRepository
                 .findByProfesionalIdAndFechaAndEstadoNotOrderByHoraInicioAsc(
@@ -138,7 +145,7 @@ class DisponibilidadServiceTest {
     }
 
     @Test
-    void noGeneraFranjaQueSupereLaHoraHasta() {
+    void noGeneraFranjaQueSupereLaHoraHastaDelProfesional() {
         HorarioAtencion horario = crearHorario(
                 DiaSemana.LUNES,
                 LocalTime.of(8, 0),
@@ -155,6 +162,84 @@ class DisponibilidadServiceTest {
                 LocalTime.of(9, 0),
                 resultado.franjas().getLast().horaFin()
         );
+    }
+
+    @Test
+    void noOfreceFranjasQueExcedanElCierreDeLaClinicaEntreSemana() {
+        HorarioAtencion horario = crearHorario(
+                DiaSemana.LUNES,
+                LocalTime.of(19, 0),
+                LocalTime.of(21, 0),
+                30
+        );
+
+        prepararProfesionalYHorarios(List.of(horario));
+
+        var resultado = service.consultar(1L, fechaConsulta);
+
+        assertEquals(2, resultado.franjas().size());
+        assertEquals(
+                LocalTime.of(20, 0),
+                resultado.franjas().getLast().horaFin()
+        );
+    }
+
+    @Test
+    void limitaLasFranjasDelSabadoAlHorarioDeOchoADoce() {
+        LocalDate fechaSabado = LocalDate.now(ZONA_CLINICA)
+                .with(TemporalAdjusters.next(DayOfWeek.SATURDAY));
+
+        HorarioAtencion horario = crearHorario(
+                DiaSemana.SABADO,
+                LocalTime.of(7, 0),
+                LocalTime.of(13, 0),
+                30
+        );
+
+        prepararProfesionalYHorarios(List.of(horario));
+
+        var resultado = service.consultar(1L, fechaSabado);
+
+        assertEquals(8, resultado.franjas().size());
+        assertEquals(
+                LocalTime.of(8, 0),
+                resultado.franjas().getFirst().horaInicio()
+        );
+        assertEquals(
+                LocalTime.of(12, 0),
+                resultado.franjas().getLast().horaFin()
+        );
+    }
+
+    @Test
+    void devuelveListaVaciaLosDomingos() {
+        LocalDate domingo = LocalDate.now(ZONA_CLINICA)
+                .with(TemporalAdjusters.next(DayOfWeek.SUNDAY));
+
+        when(profesionalRepository.findById(1L))
+                .thenReturn(Optional.of(profesional));
+
+        var resultado = service.consultar(1L, domingo);
+
+        assertTrue(resultado.franjas().isEmpty());
+        assertEquals(domingo, resultado.fecha());
+        verifyNoInteractions(horarioAtencionRepository);
+        verifyNoInteractions(turnoRepository);
+    }
+
+    @Test
+    void devuelveListaVaciaParaUnaFechaPasada() {
+        LocalDate fechaPasada = LocalDate.now(ZONA_CLINICA).minusDays(1);
+
+        when(profesionalRepository.findById(1L))
+                .thenReturn(Optional.of(profesional));
+
+        var resultado = service.consultar(1L, fechaPasada);
+
+        assertTrue(resultado.franjas().isEmpty());
+        assertEquals(fechaPasada, resultado.fecha());
+        verifyNoInteractions(horarioAtencionRepository);
+        verifyNoInteractions(turnoRepository);
     }
 
     @Test

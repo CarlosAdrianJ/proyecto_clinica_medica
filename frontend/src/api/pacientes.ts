@@ -3,7 +3,7 @@ import type {
   PacienteRequest,
 } from '../types/paciente';
 
-const BASE_URL = '/api/pacientes';
+const BASE_URL = `${import.meta.env?.VITE_API_URL ?? ''}/api/pacientes`;
 
 function mensajePorEstado(status: number): string {
   switch (status) {

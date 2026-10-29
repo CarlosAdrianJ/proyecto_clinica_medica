@@ -4,8 +4,8 @@ import type {
   ProfesionalHorario,
 } from '../types/horario';
 
-const BASE_URL = '/api/horarios-atencion';
-const PROFESIONALES_URL = '/api/profesionales';
+const BASE_URL = `${import.meta.env?.VITE_API_URL ?? ''}/api/horarios-atencion`;
+const PROFESIONALES_URL = `${import.meta.env?.VITE_API_URL ?? ''}/api/profesionales`;
 
 function mensajePorEstado(status: number): string {
   switch (status) {

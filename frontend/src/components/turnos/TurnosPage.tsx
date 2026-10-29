@@ -15,6 +15,7 @@ import {
   Spinner,
   Table,
 } from 'react-bootstrap';
+import { consultarDisponibilidad } from '../../api/disponibilidad';
 import {
   cancelarTurno,
   cambiarEstadoTurno,
@@ -23,6 +24,7 @@ import {
   listarTurnos,
   reprogramarTurno,
 } from '../../api/turnos';
+import type { FranjaDisponible } from '../../types/disponibilidad';
 import type {
   EstadoTurno,
   FiltrosTurno,
@@ -69,6 +71,33 @@ function mostrarHora(hora: string): string {
   return hora.substring(0, 5);
 }
 
+function fechaActualLocal(): string {
+  const hoy = new Date();
+  const anio = hoy.getFullYear();
+  const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+  const dia = String(hoy.getDate()).padStart(2, '0');
+
+  return `${anio}-${mes}-${dia}`;
+}
+
+function esDomingo(fecha: string): boolean {
+  if (!fecha) {
+    return false;
+  }
+
+  const [anio, mes, dia] = fecha.split('-').map(Number);
+
+  return new Date(anio, mes - 1, dia, 12).getDay() === 0;
+}
+
+function mensajeSinFranjas(fecha: string): string {
+  if (esDomingo(fecha)) {
+    return 'La clínica permanece cerrada los domingos.';
+  }
+
+  return 'No hay franjas disponibles para esa fecha. La clínica atiende de lunes a viernes de 08:00 a 20:00 y los sábados de 08:00 a 12:00.';
+}
+
 function TurnosPage({ token, rol }: TurnosPageProps) {
   const esProfesional = rol === 'PROFESIONAL';
 
@@ -88,10 +117,24 @@ function TurnosPage({ token, rol }: TurnosPageProps) {
   const [errorFormulario, setErrorFormulario] =
     useState<string | null>(null);
 
+  const [franjasNuevoTurno, setFranjasNuevoTurno] =
+    useState<FranjaDisponible[]>([]);
+  const [cargandoFranjasNuevo, setCargandoFranjasNuevo] =
+    useState(false);
+  const [mensajeFranjasNuevo, setMensajeFranjasNuevo] =
+    useState<string | null>(null);
+
   const [turnoReprogramando, setTurnoReprogramando] =
     useState<Turno | null>(null);
   const [reprogramacion, setReprogramacion] =
     useState<ReprogramarTurnoRequest>(REPROGRAMACION_VACIA);
+
+  const [franjasReprogramacion, setFranjasReprogramacion] =
+    useState<FranjaDisponible[]>([]);
+  const [cargandoFranjasReprogramacion, setCargandoFranjasReprogramacion] =
+    useState(false);
+  const [mensajeFranjasReprogramacion, setMensajeFranjasReprogramacion] =
+    useState<string | null>(null);
 
   const cargarTurnos = useCallback(async () => {
     if (!token) {
@@ -148,13 +191,13 @@ function TurnosPage({ token, rol }: TurnosPageProps) {
     estado,
   ]);
 
-useEffect(() => {
-  const temporizador = window.setTimeout(() => {
-    void cargarTurnos();
-  }, 0);
+  useEffect(() => {
+    const temporizador = window.setTimeout(() => {
+      void cargarTurnos();
+    }, 0);
 
-  return () => window.clearTimeout(temporizador);
-}, [cargarTurnos]);
+    return () => window.clearTimeout(temporizador);
+  }, [cargarTurnos]);
 
   function limpiarFiltros() {
     setPacienteId('');
@@ -165,8 +208,50 @@ useEffect(() => {
 
   function abrirNuevoTurno() {
     setNuevoTurno(TURNO_VACIO);
+    setFranjasNuevoTurno([]);
+    setMensajeFranjasNuevo(null);
     setErrorFormulario(null);
     setMostrarNuevo(true);
+  }
+
+  async function consultarFranjasNuevoTurno() {
+    setFranjasNuevoTurno([]);
+    setMensajeFranjasNuevo(null);
+    setNuevoTurno((actual) => ({
+      ...actual,
+      horaInicio: '',
+    }));
+
+    if (!nuevoTurno.profesionalId || !nuevoTurno.fecha) {
+      setMensajeFranjasNuevo(
+        'Ingresá el profesional y la fecha para consultar los horarios.',
+      );
+      return;
+    }
+
+    setCargandoFranjasNuevo(true);
+
+    try {
+      const disponibilidad = await consultarDisponibilidad(
+        token,
+        nuevoTurno.profesionalId,
+        nuevoTurno.fecha,
+      );
+
+      setFranjasNuevoTurno(disponibilidad.franjas);
+
+      if (disponibilidad.franjas.length === 0) {
+        setMensajeFranjasNuevo(mensajeSinFranjas(nuevoTurno.fecha));
+      }
+    } catch (err) {
+      setMensajeFranjasNuevo(
+        err instanceof Error
+          ? err.message
+          : 'No se pudo consultar la disponibilidad.',
+      );
+    } finally {
+      setCargandoFranjasNuevo(false);
+    }
   }
 
   async function guardarNuevoTurno(evento: FormEvent) {
@@ -191,11 +276,52 @@ useEffect(() => {
 
   function abrirReprogramacion(turno: Turno) {
     setTurnoReprogramando(turno);
-    setReprogramacion({
-      fecha: turno.fecha,
-      horaInicio: mostrarHora(turno.horaInicio),
-    });
+    setReprogramacion(REPROGRAMACION_VACIA);
+    setFranjasReprogramacion([]);
+    setMensajeFranjasReprogramacion(null);
     setErrorFormulario(null);
+  }
+
+  async function consultarFranjasReprogramacion() {
+    if (!turnoReprogramando || !reprogramacion.fecha) {
+      setFranjasReprogramacion([]);
+      setMensajeFranjasReprogramacion(
+        'Seleccioná una fecha para consultar los horarios.',
+      );
+      return;
+    }
+
+    setFranjasReprogramacion([]);
+    setMensajeFranjasReprogramacion(null);
+    setReprogramacion((actual) => ({
+      ...actual,
+      horaInicio: '',
+    }));
+    setCargandoFranjasReprogramacion(true);
+
+    try {
+      const disponibilidad = await consultarDisponibilidad(
+        token,
+        turnoReprogramando.profesionalId,
+        reprogramacion.fecha,
+      );
+
+      setFranjasReprogramacion(disponibilidad.franjas);
+
+      if (disponibilidad.franjas.length === 0) {
+        setMensajeFranjasReprogramacion(
+          mensajeSinFranjas(reprogramacion.fecha),
+        );
+      }
+    } catch (err) {
+      setMensajeFranjasReprogramacion(
+        err instanceof Error
+          ? err.message
+          : 'No se pudo consultar la disponibilidad.',
+      );
+    } finally {
+      setCargandoFranjasReprogramacion(false);
+    }
   }
 
   async function guardarReprogramacion(evento: FormEvent) {
@@ -423,8 +549,7 @@ useEffect(() => {
                               if (evento.target.value) {
                                 void cambiarEstado(
                                   turno,
-                                  evento.target
-                                    .value as EstadoTurno,
+                                  evento.target.value as EstadoTurno,
                                 );
                               }
                             }}
@@ -497,12 +622,15 @@ useEffect(() => {
                 type="number"
                 min="1"
                 value={nuevoTurno.profesionalId || ''}
-                onChange={(evento) =>
+                onChange={(evento) => {
                   setNuevoTurno({
                     ...nuevoTurno,
                     profesionalId: Number(evento.target.value),
-                  })
-                }
+                    horaInicio: '',
+                  });
+                  setFranjasNuevoTurno([]);
+                  setMensajeFranjasNuevo(null);
+                }}
               />
             </Form.Group>
 
@@ -529,34 +657,76 @@ useEffect(() => {
                   <Form.Control
                     required
                     type="date"
+                    min={fechaActualLocal()}
                     value={nuevoTurno.fecha}
-                    onChange={(evento) =>
+                    onChange={(evento) => {
                       setNuevoTurno({
                         ...nuevoTurno,
                         fecha: evento.target.value,
-                      })
-                    }
+                        horaInicio: '',
+                      });
+                      setFranjasNuevoTurno([]);
+                      setMensajeFranjasNuevo(null);
+                    }}
                   />
                 </Form.Group>
               </Col>
 
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Hora</Form.Label>
-                  <Form.Control
-                    required
-                    type="time"
-                    value={nuevoTurno.horaInicio}
-                    onChange={(evento) =>
-                      setNuevoTurno({
-                        ...nuevoTurno,
-                        horaInicio: evento.target.value,
-                      })
-                    }
-                  />
-                </Form.Group>
+              <Col md={6} className="d-flex align-items-end mb-3">
+                <Button
+                  type="button"
+                  variant="outline-primary"
+                  className="w-100"
+                  onClick={() => void consultarFranjasNuevoTurno()}
+                  disabled={cargandoFranjasNuevo}
+                >
+                  {cargandoFranjasNuevo
+                    ? 'Consultando...'
+                    : 'Consultar horarios'}
+                </Button>
               </Col>
             </Row>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Horario disponible</Form.Label>
+              <Form.Select
+                required
+                value={nuevoTurno.horaInicio}
+                disabled={
+                  cargandoFranjasNuevo
+                  || franjasNuevoTurno.length === 0
+                }
+                onChange={(evento) =>
+                  setNuevoTurno({
+                    ...nuevoTurno,
+                    horaInicio: evento.target.value,
+                  })
+                }
+              >
+                <option value="">Seleccioná una franja</option>
+                {franjasNuevoTurno.map((franja) => (
+                  <option
+                    key={franja.horaInicio}
+                    value={franja.horaInicio}
+                  >
+                    {mostrarHora(franja.horaInicio)} a{' '}
+                    {mostrarHora(franja.horaFin)}
+                  </option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+
+            {cargandoFranjasNuevo && (
+              <div className="text-center mb-3">
+                <Spinner animation="border" size="sm" />
+              </div>
+            )}
+
+            {mensajeFranjasNuevo && (
+              <Alert variant="info">
+                {mensajeFranjasNuevo}
+              </Alert>
+            )}
 
             <Form.Group>
               <Form.Label>Observaciones</Form.Label>
@@ -583,7 +753,10 @@ useEffect(() => {
               Cancelar
             </Button>
 
-            <Button type="submit" disabled={guardando}>
+            <Button
+              type="submit"
+              disabled={guardando || !nuevoTurno.horaInicio}
+            >
               {guardando ? 'Guardando...' : 'Registrar'}
             </Button>
           </Modal.Footer>
@@ -609,30 +782,72 @@ useEffect(() => {
               <Form.Control
                 required
                 type="date"
+                min={fechaActualLocal()}
                 value={reprogramacion.fecha}
-                onChange={(evento) =>
+                onChange={(evento) => {
                   setReprogramacion({
                     ...reprogramacion,
                     fecha: evento.target.value,
-                  })
-                }
+                    horaInicio: '',
+                  });
+                  setFranjasReprogramacion([]);
+                  setMensajeFranjasReprogramacion(null);
+                }}
               />
             </Form.Group>
 
-            <Form.Group>
-              <Form.Label>Hora</Form.Label>
-              <Form.Control
+            <Button
+              type="button"
+              variant="outline-primary"
+              className="mb-3"
+              onClick={() => void consultarFranjasReprogramacion()}
+              disabled={cargandoFranjasReprogramacion}
+            >
+              {cargandoFranjasReprogramacion
+                ? 'Consultando...'
+                : 'Consultar horarios'}
+            </Button>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Horario disponible</Form.Label>
+              <Form.Select
                 required
-                type="time"
                 value={reprogramacion.horaInicio}
+                disabled={
+                  cargandoFranjasReprogramacion
+                  || franjasReprogramacion.length === 0
+                }
                 onChange={(evento) =>
                   setReprogramacion({
                     ...reprogramacion,
                     horaInicio: evento.target.value,
                   })
                 }
-              />
+              >
+                <option value="">Seleccioná una franja</option>
+                {franjasReprogramacion.map((franja) => (
+                  <option
+                    key={franja.horaInicio}
+                    value={franja.horaInicio}
+                  >
+                    {mostrarHora(franja.horaInicio)} a{' '}
+                    {mostrarHora(franja.horaFin)}
+                  </option>
+                ))}
+              </Form.Select>
             </Form.Group>
+
+            {cargandoFranjasReprogramacion && (
+              <div className="text-center mb-3">
+                <Spinner animation="border" size="sm" />
+              </div>
+            )}
+
+            {mensajeFranjasReprogramacion && (
+              <Alert variant="info">
+                {mensajeFranjasReprogramacion}
+              </Alert>
+            )}
           </Modal.Body>
 
           <Modal.Footer>
@@ -643,7 +858,12 @@ useEffect(() => {
               Cancelar
             </Button>
 
-            <Button type="submit" disabled={guardando}>
+            <Button
+              type="submit"
+              disabled={
+                guardando || !reprogramacion.horaInicio
+              }
+            >
               {guardando ? 'Guardando...' : 'Reprogramar'}
             </Button>
           </Modal.Footer>

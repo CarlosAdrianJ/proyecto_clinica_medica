@@ -129,7 +129,7 @@ controlar servicios y repositorios, facilitando la organización de la lógica d
 directamente a la base de datos, reduciendo el código repetitivo de acceso a datos.
 - **Base de datos**: MySQL, motor de base de datos robusto y utilizado en Java.
 - **Frontend**: React con TypeScript para la construcción de la interfaz, junto con Bootstrap (react-bootstrap) para el diseño y estilos de los componentes. Esto permite contar con componentes visuales ya probados (formularios, tablas, botones, navegación) y mantener una interfaz consistente sin invertir tiempo excesivo en diseño desde cero. React consume la información del backend a través de una API REST, manteniendo el frontend y el backend desacoplados.
--  **Seguridad:** Spring Security junto con JWT (JSON Web Tokens) para la autenticación y autorización de usuarios, controlando el acceso a los distintos endpoints según los roles Administrador, Recepcionista y Profesional. Las contraseñas se almacenarán de forma segura mediante un hash generado con BCrypt y nunca como texto visible. Después de iniciar sesión, el usuario recibirá un token JWT que deberá enviar en las solicitudes realizadas al backend. Además, se configurará CORS para permitir la comunicación con el frontend autorizado y se aplicarán validaciones de datos del lado del servidor mediante Bean Validation.
+- - **Seguridad**: Spring Security y JWT (JSON Web Tokens) se utilizan para autenticar usuarios y controlar el acceso a los endpoints según los roles Administrador, Recepcionista y Profesional. Las contraseñas se protegen con BCrypt. El frontend envía el token JWT en las solicitudes protegidas. CORS permite los orígenes configurados para cada entorno y el backend valida los datos mediante Bean Validation.
 - **Control de versiones**: Git y GitHub, para la gestión colaborativa del código fuente y el
 seguimiento de los cambios realizados por el equipo.
 - **Despliegue**: vamos a utilizar plataformas cloud, con el objetivo de contar con un
@@ -509,9 +509,9 @@ Desde la raíz del proyecto:
 .\backend\mvnw.cmd -f .\backend\pom.xml test
 ```
 
-En la verificación del 24/10/2026 se aprobaron 104 pruebas automatizadas del backend, sin fallos, errores ni omisiones: 69 correspondientes al contexto de la aplicación y a los módulos funcionales, y 35 correspondientes a Usuarios y Seguridad, incluidas las restricciones de acceso por rol y a la agenda profesional.
+En la verificación del 29/10/2026 se aprobaron 108 pruebas automatizadas del backend, sin fallos ni errores.
 
-También se aprobaron 4 pruebas automatizadas del frontend de profesionales, que verifican el envío del JWT, los endpoints y métodos HTTP utilizados y la presentación de mensajes comprensibles ante errores del backend y de red.
+Las pruebas automatizadas del frontend registraron 12 casos: 11 aprobados y 1 pendiente (TODO), relacionado con mostrar un mensaje comprensible ante un error de conexión. También se ejecutaron correctamente la compilación de producción (`build`) y el análisis estático (`lint`).
 
 La verificación manual con MySQL confirmó el inicio y cierre de sesión, la persistencia de la sesión después de recargar la página, la navegación según los roles Administrador, Recepcionista y Profesional, el acceso del profesional únicamente a su propia agenda, el rechazo de cuentas inactivas y la recuperación del acceso después de su reactivación.
 

@@ -4,8 +4,8 @@ import type {
   UsuarioRequest,
 } from '../types/usuario';
 
-const USUARIOS_URL = '/api/usuarios';
-const PROFESIONALES_URL = '/api/profesionales';
+const USUARIOS_URL = `${import.meta.env?.VITE_API_URL ?? ''}/api/usuarios`;
+const PROFESIONALES_URL = `${import.meta.env?.VITE_API_URL ?? ''}/api/profesionales`;
 
 function mensajePorEstado(status: number): string {
   switch (status) {

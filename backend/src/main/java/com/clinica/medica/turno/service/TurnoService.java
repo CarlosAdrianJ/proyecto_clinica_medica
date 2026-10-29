@@ -22,12 +22,26 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
 public class TurnoService {
+
+    private static final ZoneId ZONA_CLINICA =
+            ZoneId.of("America/Argentina/Buenos_Aires");
+
+    private static final LocalTime HORA_APERTURA =
+            LocalTime.of(8, 0);
+
+    private static final LocalTime CIERRE_LUNES_A_VIERNES =
+            LocalTime.of(20, 0);
+
+    private static final LocalTime CIERRE_SABADO =
+            LocalTime.of(12, 0);
 
     private final TurnoRepository turnoRepository;
     private final PacienteRepository pacienteRepository;
@@ -82,7 +96,7 @@ public class TurnoService {
 
     @Transactional
     public TurnoResponse crear(TurnoRequest request) {
-        validarFecha(request.fecha());
+        validarFechaYHora(request.fecha(), request.horaInicio());
 
         Paciente paciente = pacienteRepository
                 .findByIdAndActivoTrue(request.pacienteId())
@@ -145,7 +159,7 @@ public class TurnoService {
             );
         }
 
-        validarFecha(request.fecha());
+        validarFechaYHora(request.fecha(), request.horaInicio());
 
         LocalTime horaFin = validarHorarioYCalcularFin(
                 turno.getProfesional().getId(),
@@ -247,7 +261,9 @@ public class TurnoService {
             LocalDate fecha,
             LocalTime horaInicio
     ) {
-        DiaSemana diaSemana = convertirDiaSemana(fecha.getDayOfWeek());
+        DayOfWeek dia = fecha.getDayOfWeek();
+        DiaSemana diaSemana = convertirDiaSemana(dia);
+        LocalTime horaCierre = obtenerHoraCierre(dia);
 
         return horarioAtencionRepository
                 .findByProfesionalIdAndActivoTrue(profesionalId)
@@ -258,12 +274,11 @@ public class TurnoService {
                 .filter(horario ->
                         esInicioValido(horario, horaInicio)
                 )
-                .findFirst()
                 .map(horario ->
-                        horaInicio.plusMinutes(
-                                horario.getDuracionTurno()
-                        )
+                        horaInicio.plusMinutes(horario.getDuracionTurno())
                 )
+                .filter(horaFin -> !horaFin.isAfter(horaCierre))
+                .findFirst()
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.CONFLICT,
                         "El horario solicitado no se encuentra disponible"
@@ -315,13 +330,44 @@ public class TurnoService {
         }
     }
 
-    private void validarFecha(LocalDate fecha) {
-        if (fecha.isBefore(LocalDate.now())) {
+    private void validarFechaYHora(
+            LocalDate fecha,
+            LocalTime horaInicio
+    ) {
+        LocalDateTime fechaHoraTurno = fecha.atTime(horaInicio);
+        LocalDateTime ahora = LocalDateTime.now(ZONA_CLINICA);
+
+        if (!fechaHoraTurno.isAfter(ahora)) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
-                    "La fecha del turno no puede ser anterior a la actual"
+                    "El turno debe tener una fecha y hora futuras"
             );
         }
+
+        DayOfWeek dia = fecha.getDayOfWeek();
+
+        if (dia == DayOfWeek.SUNDAY) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "La clínica no atiende los domingos"
+            );
+        }
+
+        LocalTime horaCierre = obtenerHoraCierre(dia);
+
+        if (horaInicio.isBefore(HORA_APERTURA)
+                || !horaInicio.isBefore(horaCierre)) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "La hora está fuera del horario de atención de la clínica"
+            );
+        }
+    }
+
+    private LocalTime obtenerHoraCierre(DayOfWeek dia) {
+        return dia == DayOfWeek.SATURDAY
+                ? CIERRE_SABADO
+                : CIERRE_LUNES_A_VIERNES;
     }
 
     private String limpiarObservaciones(String observaciones) {

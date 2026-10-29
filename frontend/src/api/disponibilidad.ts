@@ -1,6 +1,6 @@
 import type { Disponibilidad } from '../types/disponibilidad';
 
-const BASE_URL = '/api/disponibilidad';
+const BASE_URL = `${import.meta.env?.VITE_API_URL ?? ''}/api/disponibilidad`;
 
 function mensajePorEstado(status: number): string {
   switch (status) {

@@ -2,6 +2,7 @@ package com.clinica.medica.horario.service;
 
 import com.clinica.medica.horario.dto.HorarioAtencionRequest;
 import com.clinica.medica.horario.dto.HorarioAtencionResponse;
+import com.clinica.medica.horario.model.DiaSemana;
 import com.clinica.medica.horario.model.HorarioAtencion;
 import com.clinica.medica.horario.repository.HorarioAtencionRepository;
 import com.clinica.medica.profesional.model.Profesional;
@@ -12,11 +13,21 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Duration;
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
 public class HorarioAtencionService {
+
+    private static final LocalTime HORA_APERTURA =
+            LocalTime.of(8, 0);
+
+    private static final LocalTime CIERRE_LUNES_A_VIERNES =
+            LocalTime.of(20, 0);
+
+    private static final LocalTime CIERRE_SABADO =
+            LocalTime.of(12, 0);
 
     private final HorarioAtencionRepository horarioRepository;
     private final ProfesionalRepository profesionalRepository;
@@ -125,6 +136,23 @@ public class HorarioAtencionService {
             );
         }
 
+        if (request.diaSemana() == DiaSemana.DOMINGO) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "La clínica no atiende los domingos"
+            );
+        }
+
+        LocalTime horaCierre = obtenerHoraCierre(request.diaSemana());
+
+        if (request.horaDesde().isBefore(HORA_APERTURA)
+                || request.horaHasta().isAfter(horaCierre)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "El horario debe estar dentro de la franja de atención de la clínica"
+            );
+        }
+
         long minutosDisponibles = Duration.between(
                 request.horaDesde(),
                 request.horaHasta()
@@ -151,6 +179,12 @@ public class HorarioAtencionService {
                     "El horario se superpone con otro horario activo"
             );
         }
+    }
+
+    private LocalTime obtenerHoraCierre(DiaSemana diaSemana) {
+        return diaSemana == DiaSemana.SABADO
+                ? CIERRE_SABADO
+                : CIERRE_LUNES_A_VIERNES;
     }
 
     private void actualizarDatos(

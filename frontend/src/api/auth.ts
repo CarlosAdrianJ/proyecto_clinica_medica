@@ -4,7 +4,7 @@ import type {
   UsuarioAutenticado,
 } from '../types/auth';
 
-const BASE_URL = '/api/auth';
+const BASE_URL = `${import.meta.env?.VITE_API_URL ?? ''}/api/auth`;
 
 function mensajePorEstado(status: number): string {
   switch (status) {
