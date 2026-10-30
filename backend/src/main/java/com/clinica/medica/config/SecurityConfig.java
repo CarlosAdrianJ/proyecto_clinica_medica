@@ -89,12 +89,13 @@ public class SecurityConfig {
         CorsConfiguration configuracion = new CorsConfiguration();
         configuracion.setAllowedOrigins(origenes);
         configuracion.setAllowedMethods(List.of(
-                "GET",
-                "POST",
-                "PUT",
-                "DELETE",
-                "OPTIONS"
-        ));
+        "GET",
+        "POST",
+        "PUT",
+        "PATCH",
+        "DELETE",
+        "OPTIONS"
+      ));
         configuracion.setAllowedHeaders(List.of(
                 "Authorization",
                 "Content-Type"
