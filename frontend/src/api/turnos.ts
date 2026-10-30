@@ -149,5 +149,15 @@ export function cancelarTurno(
   return fetch(`${BASE_URL}/${id}/cancelar`, {
     method: 'PATCH',
     headers: cabeceras(token),
-  }).then((response) => manejarRespuesta<Turno>(response));
+  })
+    .then((response) => manejarRespuesta<Turno>(response))
+    .catch((error: unknown) => {
+      if (error instanceof TypeError) {
+        throw new Error(
+          'No se pudo conectar con el servidor. El turno no se canceló; verificá la conexión e intentá nuevamente.',
+        );
+      }
+
+      throw error;
+    });
 }

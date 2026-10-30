@@ -20,6 +20,7 @@ import type {
   Paciente,
   PacienteRequest,
 } from '../../types/paciente';
+import ConfirmacionModal from '../ConfirmacionModal';
 
 interface PacientesPageProps {
   token: string;
@@ -47,6 +48,7 @@ function normalizarTexto(texto: string): string {
     .replace(/[^a-z0-9]+/g, ' ')
     .trim();
 }
+
 function PacientesPage({ token }: PacientesPageProps) {
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -61,6 +63,10 @@ function PacientesPage({ token }: PacientesPageProps) {
   const [guardando, setGuardando] = useState(false);
   const [errorFormulario, setErrorFormulario] =
     useState<string | null>(null);
+
+  const [pacienteAConfirmarBaja, setPacienteAConfirmarBaja] =
+    useState<Paciente | null>(null);
+  const [dandoDeBaja, setDandoDeBaja] = useState(false);
 
   useEffect(() => {
     let componenteActivo = true;
@@ -156,8 +162,7 @@ function PacientesPage({ token }: PacientesPageProps) {
         nombre: formulario.nombre.trim(),
         apellido: formulario.apellido.trim(),
         dni: formulario.dni.trim(),
-        fechaNacimiento:
-          formulario.fechaNacimiento || null,
+        fechaNacimiento: formulario.fechaNacimiento || null,
         telefono: formulario.telefono.trim(),
         email: formulario.email.trim(),
         direccion: formulario.direccion.trim(),
@@ -186,19 +191,19 @@ function PacientesPage({ token }: PacientesPageProps) {
     }
   }
 
-  async function confirmarBaja(paciente: Paciente) {
-    const confirmar = window.confirm(
-      `¿Desea dar de baja a ${paciente.nombre} ${paciente.apellido}?`,
-    );
-
-    if (!confirmar) {
-      return;
-    }
-
+  function confirmarBaja(paciente: Paciente) {
     setError(null);
+    setPacienteAConfirmarBaja(paciente);
+  }
+
+  async function ejecutarBajaPaciente() {
+    if (!pacienteAConfirmarBaja || dandoDeBaja) return;
+
+    setDandoDeBaja(true);
 
     try {
-      await eliminarPaciente(token, paciente.id);
+      await eliminarPaciente(token, pacienteAConfirmarBaja.id);
+      setPacienteAConfirmarBaja(null);
       await recargarPacientes();
     } catch (err) {
       setError(
@@ -206,10 +211,13 @@ function PacientesPage({ token }: PacientesPageProps) {
           ? err.message
           : 'No se pudo dar de baja al paciente.',
       );
+      setPacienteAConfirmarBaja(null);
+    } finally {
+      setDandoDeBaja(false);
     }
   }
 
-   const termino = normalizarTexto(busqueda);
+  const termino = normalizarTexto(busqueda);
 
   const pacientesFiltrados = pacientes.filter((paciente) => {
     if (!termino) {
@@ -227,7 +235,8 @@ function PacientesPage({ token }: PacientesPageProps) {
     );
 
     return datosPaciente.includes(termino);
-  }); 
+  });
+
   if (cargando) {
     return (
       <main className="container py-5 text-center">
@@ -304,9 +313,7 @@ function PacientesPage({ token }: PacientesPageProps) {
                     {paciente.apellido}, {paciente.nombre}
                   </td>
                   <td>{paciente.dni}</td>
-                  <td>
-                    {paciente.fechaNacimiento ?? '—'}
-                  </td>
+                  <td>{paciente.fechaNacimiento ?? '—'}</td>
                   <td>
                     <div>{paciente.telefono || '—'}</div>
                     {paciente.email && (
@@ -334,9 +341,7 @@ function PacientesPage({ token }: PacientesPageProps) {
                     <Button
                       variant="outline-danger"
                       size="sm"
-                      onClick={() =>
-                        void confirmarBaja(paciente)
-                      }
+                      onClick={() => confirmarBaja(paciente)}
                     >
                       Dar de baja
                     </Button>
@@ -436,9 +441,7 @@ function PacientesPage({ token }: PacientesPageProps) {
                   <Form.Control
                     type="date"
                     max={FECHA_MAXIMA}
-                    value={
-                      formulario.fechaNacimiento ?? ''
-                    }
+                    value={formulario.fechaNacimiento ?? ''}
                     disabled={guardando}
                     onChange={(evento) =>
                       setFormulario((actual) => ({
@@ -529,6 +532,20 @@ function PacientesPage({ token }: PacientesPageProps) {
           </Modal.Footer>
         </Form>
       </Modal>
+
+      <ConfirmacionModal
+        mostrar={pacienteAConfirmarBaja !== null}
+        titulo="Dar de baja paciente"
+        mensaje={
+          pacienteAConfirmarBaja
+            ? `¿Confirmás la baja de ${pacienteAConfirmarBaja.nombre} ${pacienteAConfirmarBaja.apellido}?`
+            : ''
+        }
+        textoConfirmar="Sí, dar de baja"
+        confirmando={dandoDeBaja}
+        onCancelar={() => setPacienteAConfirmarBaja(null)}
+        onConfirmar={() => void ejecutarBajaPaciente()}
+      />
     </main>
   );
 }

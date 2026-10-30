@@ -55,11 +55,12 @@ public class DisponibilidadService {
             Long profesionalId,
             LocalDate fecha
     ) {
-        Profesional profesional = profesionalRepository.findById(profesionalId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Profesional no encontrado"
-                ));
+        Profesional profesional =
+                profesionalRepository.findById(profesionalId)
+                        .orElseThrow(() -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Profesional no encontrado"
+                        ));
 
         if (!Boolean.TRUE.equals(profesional.getActivo())) {
             throw new ResponseStatusException(
@@ -105,6 +106,13 @@ public class DisponibilidadService {
 
         horarios.stream()
                 .filter(horario -> horario.getDiaSemana() == diaSemana)
+                .filter(horario -> horario.getDuracionTurno() == 30)
+                .filter(horario ->
+                        esBloqueDeTreintaMinutos(horario.getHoraDesde())
+                )
+                .filter(horario ->
+                        esBloqueDeTreintaMinutos(horario.getHoraHasta())
+                )
                 .sorted(Comparator.comparing(HorarioAtencion::getHoraDesde))
                 .forEach(horario ->
                         generarFranjas(
@@ -170,6 +178,12 @@ public class DisponibilidadService {
                         turno.getHoraInicio().isBefore(horaFin)
                                 && turno.getHoraFin().isAfter(horaInicio)
                 );
+    }
+
+    private boolean esBloqueDeTreintaMinutos(LocalTime hora) {
+        return hora.getMinute() % 30 == 0
+                && hora.getSecond() == 0
+                && hora.getNano() == 0;
     }
 
     private DiaSemana convertirDiaSemana(DayOfWeek dayOfWeek) {

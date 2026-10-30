@@ -16,6 +16,8 @@ import {
   Table,
 } from 'react-bootstrap';
 import { consultarDisponibilidad } from '../../api/disponibilidad';
+import { listarPacientes } from '../../api/pacientes';
+import { listarProfesionales } from '../../api/profesionales';
 import {
   cancelarTurno,
   cambiarEstadoTurno,
@@ -25,6 +27,8 @@ import {
   reprogramarTurno,
 } from '../../api/turnos';
 import type { FranjaDisponible } from '../../types/disponibilidad';
+import type { Paciente } from '../../types/paciente';
+import type { Profesional } from '../../types/profesional';
 import type {
   EstadoTurno,
   FiltrosTurno,
@@ -32,6 +36,7 @@ import type {
   Turno,
   TurnoRequest,
 } from '../../types/turno';
+import ConfirmacionModal from '../ConfirmacionModal';
 
 type RolUsuario = 'ADMINISTRADOR' | 'RECEPCIONISTA' | 'PROFESIONAL';
 
@@ -102,6 +107,9 @@ function TurnosPage({ token, rol }: TurnosPageProps) {
   const esProfesional = rol === 'PROFESIONAL';
 
   const [turnos, setTurnos] = useState<Turno[]>([]);
+  const [pacientesDisponibles, setPacientesDisponibles] = useState<Paciente[]>([]);
+  const [profesionalesDisponibles, setProfesionalesDisponibles] = useState<Profesional[]>([]);
+  const [cargandoCatalogos, setCargandoCatalogos] = useState(!esProfesional);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -126,6 +134,9 @@ function TurnosPage({ token, rol }: TurnosPageProps) {
 
   const [turnoReprogramando, setTurnoReprogramando] =
     useState<Turno | null>(null);
+  const [turnoAConfirmarCancelacion, setTurnoAConfirmarCancelacion] =
+    useState<Turno | null>(null);
+  const [cancelando, setCancelando] = useState(false);
   const [reprogramacion, setReprogramacion] =
     useState<ReprogramarTurnoRequest>(REPROGRAMACION_VACIA);
 
@@ -135,6 +146,48 @@ function TurnosPage({ token, rol }: TurnosPageProps) {
     useState(false);
   const [mensajeFranjasReprogramacion, setMensajeFranjasReprogramacion] =
     useState<string | null>(null);
+
+  const profesionalSeleccionado = profesionalesDisponibles.find(
+    (profesional) => profesional.id === nuevoTurno.profesionalId,
+  );
+  const especialidadesDelProfesional =
+    profesionalSeleccionado?.especialidades.filter(
+      (especialidad) => especialidad.activo,
+    ) ?? [];
+
+  useEffect(() => {
+    if (esProfesional) return;
+
+    let vigente = true;
+
+    Promise.all([listarPacientes(token), listarProfesionales(token)])
+      .then(([pacientes, profesionales]) => {
+        if (!vigente) return;
+
+        setPacientesDisponibles(
+          pacientes.filter((paciente) => paciente.activo),
+        );
+        setProfesionalesDisponibles(
+          profesionales.filter((profesional) => profesional.activo),
+        );
+      })
+      .catch((err: unknown) => {
+        if (vigente) {
+          setError(
+            err instanceof Error
+              ? err.message
+              : 'No se pudieron cargar pacientes y profesionales.',
+          );
+        }
+      })
+      .finally(() => {
+        if (vigente) setCargandoCatalogos(false);
+      });
+
+    return () => {
+      vigente = false;
+    };
+  }, [esProfesional, token]);
 
   const cargarTurnos = useCallback(async () => {
     if (!token) {
@@ -353,17 +406,19 @@ function TurnosPage({ token, rol }: TurnosPageProps) {
     }
   }
 
-  async function cancelar(turno: Turno) {
-    const confirmar = window.confirm(
-      `¿Cancelar el turno de ${turno.pacienteNombre}?`,
-    );
+  function cancelar(turno: Turno) {
+    setError(null);
+    setTurnoAConfirmarCancelacion(turno);
+  }
 
-    if (!confirmar) {
-      return;
-    }
+  async function confirmarCancelacion() {
+    if (!turnoAConfirmarCancelacion || cancelando) return;
+
+    setCancelando(true);
 
     try {
-      await cancelarTurno(token, turno.id);
+      await cancelarTurno(token, turnoAConfirmarCancelacion.id);
+      setTurnoAConfirmarCancelacion(null);
       await cargarTurnos();
     } catch (err) {
       setError(
@@ -371,6 +426,9 @@ function TurnosPage({ token, rol }: TurnosPageProps) {
           ? err.message
           : 'No se pudo cancelar el turno.',
       );
+      setTurnoAConfirmarCancelacion(null);
+    } finally {
+      setCancelando(false);
     }
   }
 
@@ -398,7 +456,10 @@ function TurnosPage({ token, rol }: TurnosPageProps) {
         </h1>
 
         {!esProfesional && (
-          <Button onClick={abrirNuevoTurno}>
+          <Button
+            onClick={abrirNuevoTurno}
+            disabled={cargandoCatalogos}
+          >
             Nuevo turno
           </Button>
         )}
@@ -419,27 +480,42 @@ function TurnosPage({ token, rol }: TurnosPageProps) {
           {!esProfesional && (
             <>
               <Col md={3}>
-                <Form.Label>Paciente ID</Form.Label>
-                <Form.Control
-                  type="number"
-                  min="1"
+                <Form.Label>Paciente</Form.Label>
+                <Form.Select
                   value={pacienteId}
                   onChange={(evento) =>
                     setPacienteId(evento.target.value)
                   }
-                />
+                >
+                  <option value="">Todos los pacientes</option>
+                  {pacientesDisponibles.map((paciente) => (
+                    <option key={paciente.id} value={paciente.id}>
+                      {paciente.apellido}, {paciente.nombre} — DNI{' '}
+                      {paciente.dni}
+                    </option>
+                  ))}
+                </Form.Select>
               </Col>
 
               <Col md={3}>
-                <Form.Label>Profesional ID</Form.Label>
-                <Form.Control
-                  type="number"
-                  min="1"
+                <Form.Label>Profesional</Form.Label>
+                <Form.Select
                   value={profesionalId}
                   onChange={(evento) =>
                     setProfesionalId(evento.target.value)
                   }
-                />
+                >
+                  <option value="">Todos los profesionales</option>
+                  {profesionalesDisponibles.map((profesional) => (
+                    <option
+                      key={profesional.id}
+                      value={profesional.id}
+                    >
+                      {profesional.apellido}, {profesional.nombre} —{' '}
+                      {profesional.matricula}
+                    </option>
+                  ))}
+                </Form.Select>
               </Col>
             </>
           )}
@@ -568,7 +644,7 @@ function TurnosPage({ token, rol }: TurnosPageProps) {
                           <Button
                             size="sm"
                             variant="outline-danger"
-                            onClick={() => void cancelar(turno)}
+                            onClick={() => cancelar(turno)}
                           >
                             Cancelar
                           </Button>
@@ -600,11 +676,9 @@ function TurnosPage({ token, rol }: TurnosPageProps) {
             )}
 
             <Form.Group className="mb-3">
-              <Form.Label>Paciente ID</Form.Label>
-              <Form.Control
+              <Form.Label>Paciente</Form.Label>
+              <Form.Select
                 required
-                type="number"
-                min="1"
                 value={nuevoTurno.pacienteId || ''}
                 onChange={(evento) =>
                   setNuevoTurno({
@@ -612,34 +686,62 @@ function TurnosPage({ token, rol }: TurnosPageProps) {
                     pacienteId: Number(evento.target.value),
                   })
                 }
-              />
+              >
+                <option value="">Seleccioná un paciente</option>
+                {pacientesDisponibles.map((paciente) => (
+                  <option key={paciente.id} value={paciente.id}>
+                    {paciente.apellido}, {paciente.nombre} — DNI{' '}
+                    {paciente.dni}
+                  </option>
+                ))}
+              </Form.Select>
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label>Profesional ID</Form.Label>
-              <Form.Control
+              <Form.Label>Profesional</Form.Label>
+              <Form.Select
                 required
-                type="number"
-                min="1"
                 value={nuevoTurno.profesionalId || ''}
                 onChange={(evento) => {
+                  const profesionalIdSeleccionado = Number(
+                    evento.target.value,
+                  );
+                  const profesional = profesionalesDisponibles.find(
+                    (item) => item.id === profesionalIdSeleccionado,
+                  );
+                  const especialidadInicial =
+                    profesional?.especialidades.find(
+                      (item) => item.activo,
+                    )?.id ?? 0;
+
                   setNuevoTurno({
                     ...nuevoTurno,
-                    profesionalId: Number(evento.target.value),
+                    profesionalId: profesionalIdSeleccionado,
+                    especialidadId: especialidadInicial,
+                    fecha: '',
                     horaInicio: '',
                   });
                   setFranjasNuevoTurno([]);
                   setMensajeFranjasNuevo(null);
                 }}
-              />
+              >
+                <option value="">Seleccioná un profesional</option>
+                {profesionalesDisponibles.map((profesional) => (
+                  <option
+                    key={profesional.id}
+                    value={profesional.id}
+                  >
+                    {profesional.apellido}, {profesional.nombre} —{' '}
+                    {profesional.matricula}
+                  </option>
+                ))}
+              </Form.Select>
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label>Especialidad ID</Form.Label>
-              <Form.Control
+              <Form.Label>Especialidad</Form.Label>
+              <Form.Select
                 required
-                type="number"
-                min="1"
                 value={nuevoTurno.especialidadId || ''}
                 onChange={(evento) =>
                   setNuevoTurno({
@@ -647,7 +749,29 @@ function TurnosPage({ token, rol }: TurnosPageProps) {
                     especialidadId: Number(evento.target.value),
                   })
                 }
-              />
+                disabled={
+                  !profesionalSeleccionado ||
+                  especialidadesDelProfesional.length === 0
+                }
+              >
+                <option value="">Seleccioná una especialidad</option>
+                {especialidadesDelProfesional.map((especialidad) => (
+                  <option
+                    key={especialidad.id}
+                    value={especialidad.id}
+                  >
+                    {especialidad.nombre}
+                  </option>
+                ))}
+              </Form.Select>
+
+              {profesionalSeleccionado &&
+                especialidadesDelProfesional.length === 0 && (
+                  <Form.Text className="text-danger">
+                    Este profesional no tiene especialidades activas
+                    asociadas.
+                  </Form.Text>
+                )}
             </Form.Group>
 
             <Row>
@@ -677,7 +801,9 @@ function TurnosPage({ token, rol }: TurnosPageProps) {
                   type="button"
                   variant="outline-primary"
                   className="w-100"
-                  onClick={() => void consultarFranjasNuevoTurno()}
+                  onClick={() =>
+                    void consultarFranjasNuevoTurno()
+                  }
                   disabled={cargandoFranjasNuevo}
                 >
                   {cargandoFranjasNuevo
@@ -693,8 +819,8 @@ function TurnosPage({ token, rol }: TurnosPageProps) {
                 required
                 value={nuevoTurno.horaInicio}
                 disabled={
-                  cargandoFranjasNuevo
-                  || franjasNuevoTurno.length === 0
+                  cargandoFranjasNuevo ||
+                  franjasNuevoTurno.length === 0
                 }
                 onChange={(evento) =>
                   setNuevoTurno({
@@ -800,7 +926,9 @@ function TurnosPage({ token, rol }: TurnosPageProps) {
               type="button"
               variant="outline-primary"
               className="mb-3"
-              onClick={() => void consultarFranjasReprogramacion()}
+              onClick={() =>
+                void consultarFranjasReprogramacion()
+              }
               disabled={cargandoFranjasReprogramacion}
             >
               {cargandoFranjasReprogramacion
@@ -814,8 +942,8 @@ function TurnosPage({ token, rol }: TurnosPageProps) {
                 required
                 value={reprogramacion.horaInicio}
                 disabled={
-                  cargandoFranjasReprogramacion
-                  || franjasReprogramacion.length === 0
+                  cargandoFranjasReprogramacion ||
+                  franjasReprogramacion.length === 0
                 }
                 onChange={(evento) =>
                   setReprogramacion({
@@ -869,6 +997,20 @@ function TurnosPage({ token, rol }: TurnosPageProps) {
           </Modal.Footer>
         </Form>
       </Modal>
+
+      <ConfirmacionModal
+        mostrar={turnoAConfirmarCancelacion !== null}
+        titulo="Cancelar turno"
+        mensaje={
+          turnoAConfirmarCancelacion
+            ? `¿Confirmás la cancelación del turno de ${turnoAConfirmarCancelacion.pacienteNombre}?`
+            : ''
+        }
+        textoConfirmar="Sí, cancelar turno"
+        confirmando={cancelando}
+        onCancelar={() => setTurnoAConfirmarCancelacion(null)}
+        onConfirmar={() => void confirmarCancelacion()}
+      />
     </div>
   );
 }

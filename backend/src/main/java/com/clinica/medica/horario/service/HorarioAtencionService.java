@@ -143,13 +143,33 @@ public class HorarioAtencionService {
             );
         }
 
+        if (request.duracionTurno() != 30) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Cada turno debe durar 30 minutos"
+            );
+        }
+
+        if (!esBloqueDeTreintaMinutos(request.horaDesde())
+                || !esBloqueDeTreintaMinutos(request.horaHasta())) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Los horarios deben comenzar y finalizar en intervalos de 30 minutos"
+            );
+        }
+
         LocalTime horaCierre = obtenerHoraCierre(request.diaSemana());
 
         if (request.horaDesde().isBefore(HORA_APERTURA)
                 || request.horaHasta().isAfter(horaCierre)) {
+            String franjaPermitida = request.diaSemana() == DiaSemana.SABADO
+                    ? "El sábado la clínica atiende de 08:00 a 12:00"
+                    : "De lunes a viernes la clínica atiende de 08:00 a 20:00";
+
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "El horario debe estar dentro de la franja de atención de la clínica"
+                    franjaPermitida
+                            + "; configure el horario dentro de esa franja"
             );
         }
 
@@ -185,6 +205,12 @@ public class HorarioAtencionService {
         return diaSemana == DiaSemana.SABADO
                 ? CIERRE_SABADO
                 : CIERRE_LUNES_A_VIERNES;
+    }
+
+    private boolean esBloqueDeTreintaMinutos(LocalTime hora) {
+        return hora.getMinute() % 30 == 0
+                && hora.getSecond() == 0
+                && hora.getNano() == 0;
     }
 
     private void actualizarDatos(

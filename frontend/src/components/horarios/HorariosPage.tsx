@@ -1,4 +1,3 @@
-
 import { useEffect, useState, type FormEvent } from 'react';
 import {
   Alert,
@@ -26,6 +25,7 @@ import type {
   HorarioAtencionRequest,
   ProfesionalHorario,
 } from '../../types/horario';
+import ConfirmacionModal from '../ConfirmacionModal';
 
 interface HorariosPageProps {
   token: string;
@@ -48,7 +48,6 @@ const DIAS: DiaSemana[] = [
   'JUEVES',
   'VIERNES',
   'SABADO',
-  'DOMINGO',
 ];
 
 const NOMBRES_DIAS: Record<DiaSemana, string> = {
@@ -61,25 +60,31 @@ const NOMBRES_DIAS: Record<DiaSemana, string> = {
   DOMINGO: 'Domingo',
 };
 
-const HORAS_CADA_15_MINUTOS = Array.from(
-  { length: 96 },
-  (_, indice) => {
-    const horas = Math.floor(indice / 4)
-      .toString()
-      .padStart(2, '0');
-    const minutos = ((indice % 4) * 15)
-      .toString()
-      .padStart(2, '0');
+function horasPermitidas(dia: DiaSemana): string[] {
+  const cierreMinutos = dia === 'SABADO' ? 12 * 60 : 20 * 60;
+  const aperturaMinutos = 8 * 60;
 
-    return `${horas}:${minutos}`;
-  },
-);
+  return Array.from(
+    { length: (cierreMinutos - aperturaMinutos) / 30 + 1 },
+    (_, indice) => {
+      const minutosDelDia = aperturaMinutos + indice * 30;
+      const horas = Math.floor(minutosDelDia / 60)
+        .toString()
+        .padStart(2, '0');
+      const minutos = (minutosDelDia % 60)
+        .toString()
+        .padStart(2, '0');
+
+      return `${horas}:${minutos}`;
+    },
+  );
+}
 
 const FORMULARIO_VACIO: HorarioFormData = {
   profesionalId: '',
   diaSemana: 'LUNES',
-  horaDesde: '',
-  horaHasta: '',
+  horaDesde: '08:00',
+  horaHasta: '20:00',
   duracionTurno: '30',
 };
 
@@ -119,6 +124,9 @@ function HorariosPage({
   const [guardando, setGuardando] = useState(false);
   const [errorFormulario, setErrorFormulario] =
     useState<string | null>(null);
+  const [horarioAConfirmarBaja, setHorarioAConfirmarBaja] =
+    useState<HorarioAtencion | null>(null);
+  const [dandoDeBaja, setDandoDeBaja] = useState(false);
 
   useEffect(() => {
     let componenteActivo = true;
@@ -229,6 +237,16 @@ function HorariosPage({
     }));
   }
 
+  function cambiarDia(diaSemana: DiaSemana) {
+    setFormulario((actual) => ({
+      ...actual,
+      diaSemana,
+      horaDesde: '08:00',
+      horaHasta: diaSemana === 'SABADO' ? '12:00' : '20:00',
+      duracionTurno: '30',
+    }));
+  }
+
   async function guardarHorario(evento: FormEvent) {
     evento.preventDefault();
     setErrorFormulario(null);
@@ -256,6 +274,11 @@ function HorariosPage({
       setErrorFormulario(
         'La hora de inicio debe ser anterior a la hora final.',
       );
+      return;
+    }
+
+    if (duracionSeleccionada !== 30) {
+      setErrorFormulario('Cada turno debe durar 30 minutos.');
       return;
     }
 
@@ -289,24 +312,25 @@ function HorariosPage({
     }
   }
 
-  async function darDeBaja(horario: HorarioAtencion) {
-    const profesional =
-      `${horario.profesionalNombre} ${horario.profesionalApellido}`;
-    const confirmar = window.confirm(
-      `¿Dar de baja el horario de ${profesional} del día ${NOMBRES_DIAS[horario.diaSemana]}?`,
-    );
-
-    if (!confirmar) {
-      return;
-    }
-
+  function darDeBaja(horario: HorarioAtencion) {
     setError(null);
+    setHorarioAConfirmarBaja(horario);
+  }
+
+  async function ejecutarBajaHorario() {
+    if (!horarioAConfirmarBaja || dandoDeBaja) return;
+
+    setDandoDeBaja(true);
 
     try {
-      await eliminarHorario(token, horario.id);
+      await eliminarHorario(token, horarioAConfirmarBaja.id);
+      setHorarioAConfirmarBaja(null);
       await recargarHorarios();
     } catch (err) {
       setError(mensajeError(err));
+      setHorarioAConfirmarBaja(null);
+    } finally {
+      setDandoDeBaja(false);
     }
   }
 
@@ -460,11 +484,7 @@ function HorariosPage({
 
                   <td>
                     <Badge
-                      bg={
-                        horario.activo
-                          ? 'success'
-                          : 'secondary'
-                      }
+                      bg={horario.activo ? 'success' : 'secondary'}
                     >
                       {horario.activo ? 'Activo' : 'Inactivo'}
                     </Badge>
@@ -486,9 +506,7 @@ function HorariosPage({
                         <Button
                           size="sm"
                           variant="outline-danger"
-                          onClick={() =>
-                            void darDeBaja(horario)
-                          }
+                          onClick={() => darDeBaja(horario)}
                         >
                           Dar de baja
                         </Button>
@@ -566,10 +584,7 @@ function HorariosPage({
                 required
                 value={formulario.diaSemana}
                 onChange={(evento) =>
-                  actualizarCampo(
-                    'diaSemana',
-                    evento.target.value as DiaSemana,
-                  )
+                  cambiarDia(evento.target.value as DiaSemana)
                 }
               >
                 {DIAS.map((dia) => (
@@ -602,11 +617,13 @@ function HorariosPage({
                       Seleccione una hora
                     </option>
 
-                    {HORAS_CADA_15_MINUTOS.map((hora) => (
-                      <option key={hora} value={hora}>
-                        {hora}
-                      </option>
-                    ))}
+                    {horasPermitidas(formulario.diaSemana)
+                      .slice(0, -1)
+                      .map((hora) => (
+                        <option key={hora} value={hora}>
+                          {hora}
+                        </option>
+                      ))}
                   </Form.Select>
                 </Form.Group>
               </Col>
@@ -632,11 +649,13 @@ function HorariosPage({
                       Seleccione una hora
                     </option>
 
-                    {HORAS_CADA_15_MINUTOS.map((hora) => (
-                      <option key={hora} value={hora}>
-                        {hora}
-                      </option>
-                    ))}
+                    {horasPermitidas(formulario.diaSemana).map(
+                      (hora) => (
+                        <option key={hora} value={hora}>
+                          {hora}
+                        </option>
+                      ),
+                    )}
                   </Form.Select>
                 </Form.Group>
               </Col>
@@ -648,16 +667,9 @@ function HorariosPage({
               </Form.Label>
 
               <Form.Control
-                required
-                type="number"
-                min={1}
-                value={formulario.duracionTurno}
-                onChange={(evento) =>
-                  actualizarCampo(
-                    'duracionTurno',
-                    evento.target.value,
-                  )
-                }
+                value="30"
+                readOnly
+                aria-label="Duración fija de cada turno: 30 minutos"
               />
             </Form.Group>
           </Modal.Body>
@@ -688,6 +700,20 @@ function HorariosPage({
           </Modal.Footer>
         </Form>
       </Modal>
+
+      <ConfirmacionModal
+        mostrar={horarioAConfirmarBaja !== null}
+        titulo="Dar de baja horario"
+        mensaje={
+          horarioAConfirmarBaja
+            ? `¿Confirmás la baja del horario de ${horarioAConfirmarBaja.profesionalNombre} ${horarioAConfirmarBaja.profesionalApellido} del ${NOMBRES_DIAS[horarioAConfirmarBaja.diaSemana]}?`
+            : ''
+        }
+        textoConfirmar="Sí, dar de baja"
+        confirmando={dandoDeBaja}
+        onCancelar={() => setHorarioAConfirmarBaja(null)}
+        onConfirmar={() => void ejecutarBajaHorario()}
+      />
     </main>
   );
 }
