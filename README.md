@@ -182,7 +182,7 @@ A partir de las observaciones recibidas en la primera entrega se realizaron los 
 | Observación recibida | Modificación realizada | Estado |
 | --- | --- | --- |
 | Especificar con mayor precisión las tecnologías utilizadas para desarrollar el frontend y sus estilos. | Se definió el uso de React con TypeScript y Vite, junto con React-Bootstrap, Bootstrap y hojas CSS propias. También se explicó que el frontend se comunicará con el backend mediante una API REST. | Documentación corregida y estructura inicial del frontend integrada en `main`. |
-| Ampliar la definición de seguridad y control de acceso del sistema. | Se implementaron Spring Security, JWT, BCrypt, validaciones con Bean Validation y permisos para los roles `ADMINISTRADOR`, `RECEPCIONISTA` y `PROFESIONAL`. | Backend y autenticación frontend implementados y probados; configuración definitiva de CORS para el despliegue pendiente. |
+| Ampliar la definición de seguridad y control de acceso del sistema. | Se implementaron Spring Security, JWT, BCrypt, validaciones con Bean Validation y permisos para los roles `ADMINISTRADOR`, `RECEPCIONISTA` y `PROFESIONAL`. | Backend y autenticación frontend implementados y probados; CORS configurado para el origen de producción y el entorno local; backend y frontend desplegados. |
 
 ## 3. Arquitectura y módulos
 
@@ -349,12 +349,12 @@ Los pacientes forman parte de la información administrada por el sistema, pero 
 
 El listado anterior describe los módulos planificados para el sistema. A continuación se distingue el código implementado y subido al repositorio del trabajo que aún está en desarrollo:
 
-| Módulo | Estado al 24/10/2026 | Ubicación en el repositorio |
+| Módulo | Estado al 30/10/2026 | Ubicación en el repositorio |
 | --- | --- | --- |
 | Pacientes | Backend y frontend implementados, probados e integrados en `main`. El frontend permite listar, buscar, crear, modificar y realizar la baja lógica de pacientes. | `backend/src/main/java/com/clinica/medica/paciente/` y `frontend/src/components/pacientes/` |
 | Profesionales | Backend y frontend implementados, probados e integrados en `main`. La interfaz permite al Administrador crear, modificar, desactivar y reactivar profesionales, mientras que el Recepcionista dispone de acceso de consulta. | `backend/src/main/java/com/clinica/medica/profesional/` y `frontend/src/components/profesionales/` |
 | Especialidades | Backend y frontend integrados en `main`; endpoints verificados manualmente con Postman. Cuenta con 8 pruebas automatizadas aprobadas. | `backend/src/main/java/com/clinica/medica/especialidad/` y `frontend/` |
-| Horarios de atención | Backend y frontend implementados, probados e integrados en `main`. La interfaz permite consultar, crear, modificar y desactivar horarios, con selección de horas en intervalos de 15 minutos. | `backend/src/main/java/com/clinica/medica/horario/` y `frontend/src/components/horarios/` |
+| Horarios de atención | Backend y frontend implementados, probados e integrados en `main`. La interfaz permite consultar, crear, modificar y desactivar horarios, con selección de horas en intervalos de 30 minutos ,de lunes a viernes hasta las 20:00, los sábados hasta las 12:00 y los domingos no se atiende. | `backend/src/main/java/com/clinica/medica/horario/` y `frontend/src/components/horarios/` |
 | Disponibilidad | Backend y frontend implementados, probados e integrados en `main`. La interfaz permite consultar los turnos disponibles de un profesional para una fecha determinada. | `backend/src/main/java/com/clinica/medica/disponibilidad/` y `frontend/src/components/disponibilidad/` |
 | Turnos | Implementado y probado; 12 pruebas automatizadas aprobadas. Creación, consulta, cancelación y reutilización de horarios verificados manualmente con Postman. | `backend/src/main/java/com/clinica/medica/turno/` |
 | Agenda | Consulta restringida del profesional implementada y probada en el backend mediante `/api/turnos/mi-agenda`; interfaz visual integrada en el frontend. | `backend/src/main/java/com/clinica/medica/turno/`, `frontend/src/components/turnos/` y `security/` |
