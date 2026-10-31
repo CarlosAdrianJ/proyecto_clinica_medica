@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import {
   Button,
@@ -14,6 +13,7 @@ import {
   obtenerToken,
 } from './auth/sesion';
 import LoginPage from './components/auth/LoginPage';
+import PortalPaciente from './components/auth/PortalPaciente';
 import DisponibilidadPage from './components/disponibilidad/DisponibilidadPage';
 import EspecialidadesPage from './components/especialidades/EspecialidadesPage';
 import HorariosPage from './components/horarios/HorariosPage';
@@ -28,6 +28,7 @@ import type {
 
 type Pantalla =
   | 'turnos'
+  | 'mi-portal'
   | 'horarios'
   | 'disponibilidad'
   | 'pacientes'
@@ -60,6 +61,11 @@ function App() {
       .then((usuarioActual) => {
         if (componenteActivo) {
           setUsuario(usuarioActual);
+          setPantalla(
+            usuarioActual.rol === 'PACIENTE'
+              ? 'mi-portal'
+              : 'turnos',
+          );
         }
       })
       .catch(() => {
@@ -83,7 +89,11 @@ function App() {
     guardarToken(respuesta.token);
     setToken(respuesta.token);
     setUsuario(respuesta.usuario);
-    setPantalla('turnos');
+    setPantalla(
+      respuesta.usuario.rol === 'PACIENTE'
+        ? 'mi-portal'
+        : 'turnos',
+    );
   }
 
   function cerrarSesion() {
@@ -128,56 +138,79 @@ function App() {
 
           <Navbar.Collapse id="navegacion-principal">
             <Nav className="me-auto">
-              {puedeGestionarPacientes && <Nav.Link
-                active={pantalla === 'especialidades'}
-                onClick={() => setPantalla('especialidades')}
-              >
-                Especialidades
-              </Nav.Link>}
-              <Nav.Link
-                active={pantalla === 'turnos'}
-                onClick={() => setPantalla('turnos')}
-              >
-                {usuario.rol === 'PROFESIONAL' ? 'Mi agenda' : 'Turnos'}
-              </Nav.Link>
-
-              {puedeGestionarPacientes && <Nav.Link
-                active={pantalla === 'horarios'}
-                onClick={() => setPantalla('horarios')}
-              >
-                Horarios
-              </Nav.Link>}
-
-              {puedeGestionarPacientes && <Nav.Link
-                active={pantalla === 'disponibilidad'}
-                onClick={() => setPantalla('disponibilidad')}
-              >
-                Disponibilidad
-              </Nav.Link>}
-
-              {puedeGestionarPacientes && (
+              {usuario.rol === 'PACIENTE' ? (
                 <Nav.Link
-                  active={pantalla === 'pacientes'}
-                  onClick={() => setPantalla('pacientes')}
+                  active={pantalla === 'mi-portal'}
+                  onClick={() => setPantalla('mi-portal')}
                 >
-                  Pacientes
+                  Mi portal
                 </Nav.Link>
-              )}
+              ) : (
+                <>
+                  {puedeGestionarPacientes && (
+                    <Nav.Link
+                      active={pantalla === 'especialidades'}
+                      onClick={() => setPantalla('especialidades')}
+                    >
+                      Especialidades
+                    </Nav.Link>
+                  )}
 
-              {usuario.rol === 'ADMINISTRADOR' && (
-                <Nav.Link
-                  active={pantalla === 'usuarios'}
-                  onClick={() => setPantalla('usuarios')}
-                >
-                  Usuarios
-                </Nav.Link>
+                  <Nav.Link
+                    active={pantalla === 'turnos'}
+                    onClick={() => setPantalla('turnos')}
+                  >
+                    {usuario.rol === 'PROFESIONAL'
+                      ? 'Mi agenda'
+                      : 'Turnos'}
+                  </Nav.Link>
+
+                  {puedeGestionarPacientes && (
+                    <Nav.Link
+                      active={pantalla === 'horarios'}
+                      onClick={() => setPantalla('horarios')}
+                    >
+                      Horarios
+                    </Nav.Link>
+                  )}
+
+                  {puedeGestionarPacientes && (
+                    <Nav.Link
+                      active={pantalla === 'disponibilidad'}
+                      onClick={() => setPantalla('disponibilidad')}
+                    >
+                      Disponibilidad
+                    </Nav.Link>
+                  )}
+
+                  {puedeGestionarPacientes && (
+                    <Nav.Link
+                      active={pantalla === 'pacientes'}
+                      onClick={() => setPantalla('pacientes')}
+                    >
+                      Pacientes
+                    </Nav.Link>
+                  )}
+
+                  {usuario.rol === 'ADMINISTRADOR' && (
+                    <Nav.Link
+                      active={pantalla === 'usuarios'}
+                      onClick={() => setPantalla('usuarios')}
+                    >
+                      Usuarios
+                    </Nav.Link>
+                  )}
+
+                  {puedeGestionarPacientes && (
+                    <Nav.Link
+                      active={pantalla === 'profesionales'}
+                      onClick={() => setPantalla('profesionales')}
+                    >
+                      Profesionales
+                    </Nav.Link>
+                  )}
+                </>
               )}
-              {puedeGestionarPacientes && <Nav.Link
-                active={pantalla === 'profesionales'}
-                onClick={() => setPantalla('profesionales')}
-              >
-                Profesionales
-              </Nav.Link>}
             </Nav>
 
             <div className="d-flex align-items-center gap-3 text-white">
@@ -198,7 +231,9 @@ function App() {
         </Container>
       </Navbar>
 
-      {usuario.rol === 'PROFESIONAL' ? (
+      {usuario.rol === 'PACIENTE' ? (
+        <PortalPaciente token={token} />
+      ) : usuario.rol === 'PROFESIONAL' ? (
         <TurnosPage token={token} rol={usuario.rol} />
       ) : pantalla === 'especialidades' ? (
         <EspecialidadesPage token={token} rol={usuario.rol} />
@@ -207,7 +242,7 @@ function App() {
           <ProfesionalesPage token={token} usuario={usuario} />
         </Container>
       ) : pantalla === 'usuarios' &&
-      usuario.rol === 'ADMINISTRADOR' ? (
+        usuario.rol === 'ADMINISTRADOR' ? (
         <UsuariosPage
           token={token}
           usuarioActualId={usuario.id}
@@ -228,10 +263,7 @@ function App() {
           profesionalId={usuario.profesionalId}
         />
       ) : (
-        <TurnosPage
-          token={token}
-          rol={usuario.rol}
-        />
+        <TurnosPage token={token} rol={usuario.rol} />
       )}
     </>
   );
