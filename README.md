@@ -73,10 +73,7 @@ disponibilidad para una fecha determinada. A partir de esta información, el per
 administrativo podrá registrar nuevos turnos vinculando un paciente con un profesional, una
 fecha y un horario. El sistema deberá controlar la disponibilidad antes de realizar la asignación,
 evitando que se registren turnos superpuestos para un mismo profesional.
-Los turnos registrados podrán consultarse desde una agenda centralizada y será posible
-cancelarlos o reprogramarlos cuando sea necesario. Además, se podrá identificar su estado,
-diferenciando al menos entre turnos pendientes, atendidos, cancelados y ausentes, facilitando
-así el seguimiento de la atención.
+Los turnos registrados podrán consultarse desde una agenda centralizada y será posible cancelarlos o reprogramarlos cuando sea necesario. También se podrá identificar el estado de cada turno —pendiente, atendido, cancelado o ausente— para facilitar el seguimiento de la atención. Además, los pacientes podrán registrarse e ingresar con su propia cuenta para consultar sus datos personales y el historial de sus turnos. Cada paciente tendrá acceso únicamente a su propia información.
 
 De esta manera, el alcance de la primera versión comprenderá principalmente:
 - Gestión de pacientes.
@@ -103,8 +100,7 @@ Por lo tanto, esta primera versión no incluirá:
 - Facturación, cobros o administración de pagos.
 - Integraciones con WhatsApp, correo electrónico u otros servicios externos.
 - Envío automático de recordatorios o notificaciones.
-- Reserva o gestión autónoma de turnos por parte de los pacientes mediante un portal o
-aplicación.
+- Reserva autónoma de turnos por parte de los pacientes. El portal de esta versión permite registrarse y consultar el perfil y el historial de turnos propios.
 - Gestión de consultas virtuales o videollamadas.
 - Reportes estadísticos o herramientas avanzadas de análisis.
 
@@ -182,7 +178,7 @@ A partir de las observaciones recibidas en la primera entrega se realizaron los 
 | Observación recibida | Modificación realizada | Estado |
 | --- | --- | --- |
 | Especificar con mayor precisión las tecnologías utilizadas para desarrollar el frontend y sus estilos. | Se definió el uso de React con TypeScript y Vite, junto con React-Bootstrap, Bootstrap y hojas CSS propias. También se explicó que el frontend se comunicará con el backend mediante una API REST. | Documentación corregida y estructura inicial del frontend integrada en `main`. |
-| Ampliar la definición de seguridad y control de acceso del sistema. | Se implementaron Spring Security, JWT, BCrypt, validaciones con Bean Validation y permisos para los roles `ADMINISTRADOR`, `RECEPCIONISTA` y `PROFESIONAL`. | Backend y autenticación frontend implementados y probados; CORS configurado para el origen de producción y el entorno local; backend y frontend desplegados. |
+| Ampliar la definición de seguridad y control de acceso del sistema. | Se implementaron Spring Security, JWT, BCrypt, validaciones con Bean Validation y permisos para los roles `ADMINISTRADOR`, `RECEPCIONISTA` , `PROFESIONAL` `PACIENTE`. | Backend y autenticación frontend implementados y probados; CORS configurado para el origen de producción y el entorno local; backend y frontend desplegados. |
 
 ## 3. Arquitectura y módulos
 
@@ -201,7 +197,7 @@ flowchart TD
     F["Seguridad: Spring Security + JWT"] -.-> B
 ```
 
--  **Frontend:** interfaz desarrollada con React, TypeScript y Vite. Para los estilos se utilizarán React-Bootstrap, Bootstrap y hojas CSS propias. Permitirá que el personal administrativo utilice las funciones del sistema y se comunicará con el backend mediante una API REST.
+-  **Frontend:** interfaz desarrollada con React, TypeScript y Vite. Para los estilos se utilizarán React-Bootstrap, Bootstrap y hojas CSS propias. Permitirá que el personal administrativo gestione el sistema, que los profesionales consulten su agenda y que los pacientes accedan a su perfil y al historial de sus turnos
 - **Backend:** aplicación desarrollada con Java y Spring Boot. Contendrá la lógica de negocio, las validaciones y la API REST.
 - **Persistencia:** se utilizará Spring Data JPA para relacionar las entidades Java con las tablas de la base de datos.
 - **Base de datos:** se utilizará MySQL para almacenar pacientes, profesionales, especialidades, horarios, usuarios y turnos.
@@ -232,7 +228,8 @@ Las principales funcionalidades serán:
 - Buscar pacientes por sus datos identificatorios.
 - Modificar los datos de un paciente.
 - Realizar la baja lógica de un paciente mediante el campo activo.
-  
+
+Los pacientes también podrán registrarse e ingresar al portal para consultar su perfil y el historial de sus propios turnos.  
 Los datos principales administrados serán nombre, apellido, DNI, fecha de nacimiento, teléfono, correo electrónico y dirección.
 
 
@@ -334,16 +331,16 @@ Las funcionalidades implementadas son:
 - Inicio de sesión mediante nombre de usuario y contraseña.
 - Almacenamiento de contraseñas mediante BCrypt.
 - Emisión y validación de tokens JWT.
-- Control de acceso según los roles ADMINISTRADOR, RECEPCIONISTA y PROFESIONAL.
+- Control de acceso según los roles ADMINISTRADOR, RECEPCIONISTA , PROFESIONAL y PACIENTE.
 - Asociación de las cuentas profesionales con un profesional existente y activo.
 - Restricción de las consultas del profesional a sus propios datos, horarios y disponibilidad.
 - Rechazo del acceso de cuentas desactivadas, incluso cuando presentan un token previamente emitido.
 
-El administrador gestiona las cuentas y los catálogos del sistema. El recepcionista puede gestionar pacientes y consultar profesionales, especialidades, horarios y disponibilidad. El profesional puede consultar especialidades y la información autorizada correspondiente a su profesional asociado.
+El Administrador gestiona las cuentas y los catálogos del sistema. El Recepcionista puede gestionar pacientes y consultar profesionales, especialidades, horarios y disponibilidad. El Profesional puede consultar su propia agenda y la información autorizada asociada a su cuenta. El Paciente puede ingresar a su portal y consultar únicamente su perfil y el historial de sus turnos.
 
 Los endpoints administrativos del módulo de turnos están habilitados para los roles Administrador y Recepcionista. El profesional autenticado puede consultar únicamente sus propios turnos mediante el endpoint `/api/turnos/mi-agenda`. En el frontend se implementaron el inicio de sesión, el almacenamiento y envío del JWT, el cierre de sesión y la pantalla visual de turnos y agenda según el rol autenticado.
 
-Los pacientes forman parte de la información administrada por el sistema, pero no tienen cuentas de acceso en esta versión.
+Los pacientes pueden registrarse desde la pantalla de inicio de sesión y acceder al sistema con su propia cuenta. Al registrarse, se crea su perfil y se le asigna el rol PACIENTE. Una vez dentro, pueden consultar únicamente sus propios datos y el historial de sus turnos. El sistema restringe el acceso para proteger la información personal de cada paciente.
 
 ### Estado de los módulos subidos al repositorio
 
@@ -388,6 +385,7 @@ erDiagram
     ESPECIALIDADES ||--o{ PROFESIONAL_ESPECIALIDAD : incluye
     PROFESIONAL_ESPECIALIDAD ||--o{ TURNOS : habilita
     PROFESIONALES o|--o{ USUARIOS : vincula
+    PACIENTES o|--o| USUARIOS : vincula
 
     PACIENTES {
         BIGINT id PK
@@ -454,6 +452,7 @@ erDiagram
         VARCHAR contrasena_hash
         ENUM rol
         BIGINT profesional_id FK
+        BIGINT paciente_id FK
         BOOLEAN activo
     }
 ```
@@ -513,7 +512,7 @@ En la verificación del 29/10/2026 se aprobaron 108 pruebas automatizadas del ba
 
 Las pruebas automatizadas del frontend registraron 12 casos: 11 aprobados y 1 pendiente (TODO), relacionado con mostrar un mensaje comprensible ante un error de conexión. También se ejecutaron correctamente la compilación de producción (`build`) y el análisis estático (`lint`).
 
-La verificación manual con MySQL confirmó el inicio y cierre de sesión, la persistencia de la sesión después de recargar la página, la navegación según los roles Administrador, Recepcionista y Profesional, el acceso del profesional únicamente a su propia agenda, el rechazo de cuentas inactivas y la recuperación del acceso después de su reactivación.
+La verificación manual con MySQL confirmó el inicio y cierre de sesión, la persistencia de la sesión después de recargar la página, la navegación según los roles Administrador, Recepcionista , Profesional y Paciente, el acceso del profesional únicamente a su propia agenda, el rechazo de cuentas inactivas y la recuperación del acceso después de su reactivación.
 
 Las pruebas automatizadas utilizan H2 en memoria y no modifican la base MySQL.
 
