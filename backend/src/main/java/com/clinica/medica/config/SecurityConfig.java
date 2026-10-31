@@ -28,8 +28,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Base64;
+import java.util.List;
 
 @Configuration
 @EnableMethodSecurity
@@ -89,13 +89,13 @@ public class SecurityConfig {
         CorsConfiguration configuracion = new CorsConfiguration();
         configuracion.setAllowedOrigins(origenes);
         configuracion.setAllowedMethods(List.of(
-        "GET",
-        "POST",
-        "PUT",
-        "PATCH",
-        "DELETE",
-        "OPTIONS"
-      ));
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE",
+                "OPTIONS"
+        ));
         configuracion.setAllowedHeaders(List.of(
                 "Authorization",
                 "Content-Type"
@@ -152,6 +152,14 @@ public class SecurityConfig {
                                 "/api/usuarios",
                                 "/api/usuarios/**"
                         ).hasRole("ADMINISTRADOR")
+
+                        // El paciente puede consultar solamente su propio perfil.
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/pacientes/mi-perfil"
+                        ).hasRole("PACIENTE")
+
+                        // Las demás rutas de pacientes siguen restringidas.
                         .requestMatchers(
                                 "/api/pacientes",
                                 "/api/pacientes/**"
