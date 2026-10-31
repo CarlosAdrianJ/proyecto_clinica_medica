@@ -100,7 +100,13 @@ export function consultarMiAgenda(
     headers: cabeceras(token),
   }).then((response) => manejarRespuesta<Turno[]>(response));
 }
-
+export function consultarMiHistorial(
+  token: string,
+): Promise<Turno[]> {
+  return fetch(`${BASE_URL}/mi-historial`, {
+    headers: cabeceras(token),
+  }).then((response) => manejarRespuesta<Turno[]>(response));
+}
 export function buscarTurno(token: string, id: number): Promise<Turno> {
   return fetch(`${BASE_URL}/${id}`, {
     headers: cabeceras(token),

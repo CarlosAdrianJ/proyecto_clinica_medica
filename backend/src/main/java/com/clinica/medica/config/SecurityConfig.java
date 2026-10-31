@@ -142,7 +142,8 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers(
                                 HttpMethod.POST,
-                                "/api/auth/login"
+                                "/api/auth/login",
+                                "/api/auth/registro-paciente"
                         ).permitAll()
                         .requestMatchers(
                                 "/api/auth/me"

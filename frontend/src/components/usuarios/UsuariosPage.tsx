@@ -15,7 +15,9 @@ import {
   listarProfesionales,
   listarUsuarios,
 } from '../../api/usuarios';
+import { listarPacientes } from '../../api/pacientes';
 import type { Rol } from '../../types/auth';
+import type { Paciente } from '../../types/paciente';
 import type {
   ProfesionalResumen,
   Usuario,
@@ -32,6 +34,7 @@ const FORMULARIO_VACIO: UsuarioRequest = {
   contrasena: '',
   rol: 'RECEPCIONISTA',
   profesionalId: null,
+  pacienteId: null,
   activo: true,
 };
 
@@ -43,6 +46,7 @@ function UsuariosPage({
   const [profesionales, setProfesionales] = useState<
     ProfesionalResumen[]
   >([]);
+  const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -61,17 +65,29 @@ function UsuariosPage({
     Promise.all([
       listarUsuarios(token),
       listarProfesionales(token),
+      listarPacientes(token),
     ])
-      .then(([usuariosRecibidos, profesionalesRecibidos]) => {
-        if (componenteActivo) {
-          setUsuarios(usuariosRecibidos);
-          setProfesionales(
-            profesionalesRecibidos.filter(
-              (profesional) => profesional.activo,
-            ),
-          );
-        }
-      })
+      .then(
+        ([
+          usuariosRecibidos,
+          profesionalesRecibidos,
+          pacientesRecibidos,
+        ]) => {
+          if (componenteActivo) {
+            setUsuarios(usuariosRecibidos);
+            setProfesionales(
+              profesionalesRecibidos.filter(
+                (profesional) => profesional.activo,
+              ),
+            );
+            setPacientes(
+              pacientesRecibidos.filter(
+                (paciente) => paciente.activo,
+              ),
+            );
+          }
+        },
+      )
       .catch((err: unknown) => {
         if (componenteActivo) {
           setError(
@@ -111,6 +127,7 @@ function UsuariosPage({
       contrasena: '',
       rol: usuario.rol,
       profesionalId: usuario.profesionalId,
+      pacienteId: usuario.pacienteId,
       activo: usuario.activo,
     });
     setErrorFormulario(null);
@@ -129,6 +146,8 @@ function UsuariosPage({
       rol,
       profesionalId:
         rol === 'PROFESIONAL' ? actual.profesionalId : null,
+      pacienteId:
+        rol === 'PACIENTE' ? actual.pacienteId : null,
     }));
   }
 
@@ -162,6 +181,16 @@ function UsuariosPage({
       return;
     }
 
+    if (
+      formulario.rol === 'PACIENTE' &&
+      formulario.pacienteId === null
+    ) {
+      setErrorFormulario(
+        'Debe seleccionar la ficha del paciente para esta cuenta.',
+      );
+      return;
+    }
+
     setGuardando(true);
 
     try {
@@ -171,6 +200,10 @@ function UsuariosPage({
         profesionalId:
           formulario.rol === 'PROFESIONAL'
             ? formulario.profesionalId
+            : null,
+        pacienteId:
+          formulario.rol === 'PACIENTE'
+            ? formulario.pacienteId
             : null,
       };
 
@@ -243,6 +276,20 @@ function UsuariosPage({
       : `Profesional #${profesionalId}`;
   }
 
+  function nombrePaciente(pacienteId: number | null): string {
+    if (pacienteId === null) {
+      return '—';
+    }
+
+    const paciente = pacientes.find(
+      (item) => item.id === pacienteId,
+    );
+
+    return paciente
+      ? `${paciente.apellido}, ${paciente.nombre}`
+      : `Paciente #${pacienteId}`;
+  }
+
   if (cargando) {
     return (
       <main className="container py-5 text-center">
@@ -285,7 +332,7 @@ function UsuariosPage({
             <tr>
               <th>Usuario</th>
               <th>Rol</th>
-              <th>Profesional</th>
+              <th>Vinculado a</th>
               <th>Estado</th>
               <th className="text-end">Acciones</th>
             </tr>
@@ -309,33 +356,31 @@ function UsuariosPage({
                       </Badge>
                     )}
                   </td>
+
                   <td>{usuario.rol}</td>
+
                   <td>
-                    {nombreProfesional(
-                      usuario.profesionalId,
-                    )}
+                    {usuario.rol === 'PROFESIONAL'
+                      ? nombreProfesional(usuario.profesionalId)
+                      : usuario.rol === 'PACIENTE'
+                        ? nombrePaciente(usuario.pacienteId)
+                        : '—'}
                   </td>
+
                   <td>
                     <Badge
-                      bg={
-                        usuario.activo
-                          ? 'success'
-                          : 'secondary'
-                      }
+                      bg={usuario.activo ? 'success' : 'secondary'}
                     >
-                      {usuario.activo
-                        ? 'Activo'
-                        : 'Inactivo'}
+                      {usuario.activo ? 'Activo' : 'Inactivo'}
                     </Badge>
                   </td>
+
                   <td className="text-end">
                     <Button
                       variant="outline-primary"
                       size="sm"
                       className="me-2"
-                      onClick={() =>
-                        abrirModalEditar(usuario)
-                      }
+                      onClick={() => abrirModalEditar(usuario)}
                     >
                       Editar
                     </Button>
@@ -344,13 +389,9 @@ function UsuariosPage({
                       <Button
                         variant="outline-danger"
                         size="sm"
-                        disabled={
-                          usuario.id === usuarioActualId
-                        }
+                        disabled={usuario.id === usuarioActualId}
                         onClick={() =>
-                          void confirmarDesactivacion(
-                            usuario,
-                          )
+                          void confirmarDesactivacion(usuario)
                         }
                       >
                         Desactivar
@@ -373,9 +414,7 @@ function UsuariosPage({
         <Form onSubmit={guardar}>
           <Modal.Header closeButton={!guardando}>
             <Modal.Title>
-              {usuarioEditando
-                ? 'Editar usuario'
-                : 'Nuevo usuario'}
+              {usuarioEditando ? 'Editar usuario' : 'Nuevo usuario'}
             </Modal.Title>
           </Modal.Header>
 
@@ -454,6 +493,9 @@ function UsuariosPage({
                 <option value="PROFESIONAL">
                   Profesional
                 </option>
+                <option value="PACIENTE">
+                  Paciente
+                </option>
               </Form.Select>
             </Form.Group>
 
@@ -481,12 +523,47 @@ function UsuariosPage({
                       key={profesional.id}
                       value={profesional.id}
                     >
-                      {profesional.apellido},{' '}
-                      {profesional.nombre} —{' '}
+                      {profesional.apellido}, {profesional.nombre} —{' '}
                       {profesional.matricula}
                     </option>
                   ))}
                 </Form.Select>
+              </Form.Group>
+            )}
+
+            {formulario.rol === 'PACIENTE' && (
+              <Form.Group className="mb-3">
+                <Form.Label>Ficha de paciente asociada</Form.Label>
+                <Form.Select
+                  required
+                  value={formulario.pacienteId ?? ''}
+                  onChange={(evento) =>
+                    setFormulario((actual) => ({
+                      ...actual,
+                      pacienteId: evento.target.value
+                        ? Number(evento.target.value)
+                        : null,
+                    }))
+                  }
+                  disabled={guardando}
+                >
+                  <option value="">
+                    Seleccione un paciente
+                  </option>
+                  {pacientes.map((paciente) => (
+                    <option
+                      key={paciente.id}
+                      value={paciente.id}
+                    >
+                      {paciente.apellido}, {paciente.nombre} — DNI{' '}
+                      {paciente.dni}
+                    </option>
+                  ))}
+                </Form.Select>
+                <Form.Text muted>
+                  Entregale al paciente su usuario y contraseña por un
+                  canal privado.
+                </Form.Text>
               </Form.Group>
             )}
 

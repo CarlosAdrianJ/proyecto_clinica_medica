@@ -1,13 +1,15 @@
 export type Rol =
   | 'ADMINISTRADOR'
   | 'RECEPCIONISTA'
-  | 'PROFESIONAL';
+  | 'PROFESIONAL'
+  | 'PACIENTE';
 
 export interface UsuarioAutenticado {
   id: number;
   nombreUsuario: string;
   rol: Rol;
   profesionalId: number | null;
+  pacienteId: number | null;
   activo: boolean;
 }
 

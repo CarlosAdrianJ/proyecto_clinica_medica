@@ -5,6 +5,7 @@ export interface Usuario {
   nombreUsuario: string;
   rol: Rol;
   profesionalId: number | null;
+  pacienteId: number | null;
   activo: boolean;
 }
 
@@ -13,6 +14,7 @@ export interface UsuarioRequest {
   contrasena: string;
   rol: Rol;
   profesionalId: number | null;
+  pacienteId: number | null;
   activo: boolean;
 }
 

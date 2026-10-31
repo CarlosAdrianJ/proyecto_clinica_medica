@@ -25,9 +25,13 @@ async function manejarRespuesta<T>(response: Response): Promise<T> {
 
     try {
       const cuerpo = await response.json();
+      const mensajeServidor = cuerpo?.message ?? cuerpo?.detail;
 
-      if (typeof cuerpo?.message === 'string' && cuerpo.message.trim()) {
-        mensaje = cuerpo.message;
+      if (
+        typeof mensajeServidor === 'string' &&
+        mensajeServidor.trim()
+      ) {
+        mensaje = mensajeServidor;
       }
     } catch {
       mensaje = mensajePorEstado(response.status);
@@ -48,6 +52,32 @@ export async function iniciarSesion(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(credenciales),
+  });
+
+  return manejarRespuesta<LoginResponse>(response);
+}
+
+export interface RegistroPaciente {
+  nombre: string;
+  apellido: string;
+  dni: string;
+  fechaNacimiento: string | null;
+  telefono: string;
+  email: string;
+  direccion: string;
+  nombreUsuario: string;
+  contrasena: string;
+}
+
+export async function registrarPaciente(
+  datos: RegistroPaciente,
+): Promise<LoginResponse> {
+  const response = await fetch(`${BASE_URL}/registro-paciente`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(datos),
   });
 
   return manejarRespuesta<LoginResponse>(response);

@@ -38,7 +38,11 @@ import type {
 } from '../../types/turno';
 import ConfirmacionModal from '../ConfirmacionModal';
 
-type RolUsuario = 'ADMINISTRADOR' | 'RECEPCIONISTA' | 'PROFESIONAL';
+type RolUsuario =
+  | 'ADMINISTRADOR'
+  | 'RECEPCIONISTA'
+  | 'PROFESIONAL'
+  | 'PACIENTE';
 
 interface TurnosPageProps {
   token: string;

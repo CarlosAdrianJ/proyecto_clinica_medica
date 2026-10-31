@@ -35,13 +35,24 @@ CREATE TABLE usuarios (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
     nombre_usuario  VARCHAR(50) NOT NULL UNIQUE,
     contrasena_hash VARCHAR(255) NOT NULL,
-    rol             ENUM('ADMINISTRADOR', 'RECEPCIONISTA', 'PROFESIONAL') NOT NULL,
+    rol             ENUM(
+        'ADMINISTRADOR',
+        'RECEPCIONISTA',
+        'PROFESIONAL',
+        'PACIENTE'
+    ) NOT NULL,
     profesional_id  BIGINT NULL,
+    paciente_id     BIGINT NULL UNIQUE,
     activo          BOOLEAN NOT NULL DEFAULT TRUE,
 
     CONSTRAINT fk_usuario_profesional
         FOREIGN KEY (profesional_id)
         REFERENCES profesionales(id)
+        ON DELETE SET NULL,
+
+    CONSTRAINT fk_usuario_paciente
+        FOREIGN KEY (paciente_id)
+        REFERENCES pacientes(id)
         ON DELETE SET NULL
 );
 

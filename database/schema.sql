@@ -1,15 +1,4 @@
--- ============================================================
--- Sistema de Gestión de Turnos para una Clínica Médica
--- schema.sql — creación de base de datos, tablas, relaciones
---              y restricciones
--- Motor: MySQL 8.x / MariaDB 10.x
---
--- Convención de nombres: cada tabla usa "id" como clave primaria
--- y "tabla_id" para las claves foráneas (ej. profesional_id).
--- Se eligió así porque es la convención por defecto de Spring
--- Data JPA / Hibernate: evita tener que anotar @Column en cada
--- entidad para que coincida con el nombre de columna.
--- ============================================================
+
 
 CREATE DATABASE IF NOT EXISTS clinica_medica
     CHARACTER SET utf8mb4
@@ -17,9 +6,7 @@ CREATE DATABASE IF NOT EXISTS clinica_medica
 
 USE clinica_medica;
 
--- Se dropean las tablas en orden inverso a sus dependencias
--- (las que tienen FKs primero) para poder re-ejecutar este
--- script las veces que haga falta durante el desarrollo.
+
 DROP TABLE IF EXISTS turnos;
 DROP TABLE IF EXISTS horarios_atencion;
 DROP TABLE IF EXISTS profesional_especialidad;
@@ -28,11 +15,7 @@ DROP TABLE IF EXISTS pacientes;
 DROP TABLE IF EXISTS profesionales;
 DROP TABLE IF EXISTS especialidades;
 
--- ------------------------------------------------------------
--- especialidades
--- Especialidades que ofrece la clínica (odontología, nutrición,
--- etc.). No depende de ninguna otra tabla.
--- ------------------------------------------------------------
+
 CREATE TABLE especialidades (
     id          BIGINT AUTO_INCREMENT PRIMARY KEY,
     nombre      VARCHAR(100) NOT NULL UNIQUE,
@@ -40,12 +23,7 @@ CREATE TABLE especialidades (
     activo      BOOLEAN NOT NULL DEFAULT TRUE  -- baja lógica
 );
 
--- ------------------------------------------------------------
--- profesionales
--- Datos del profesional de la salud. La especialidad NO va acá
--- directo: un profesional puede tener más de una, por eso se
--- resuelve en la tabla intermedia profesional_especialidad.
--- ------------------------------------------------------------
+
 CREATE TABLE profesionales (
     id         BIGINT AUTO_INCREMENT PRIMARY KEY,
     nombre     VARCHAR(100) NOT NULL,
@@ -58,8 +36,7 @@ CREATE TABLE profesionales (
 );
 
 
--- PACIENTES
--- Datos de los pacientes que solicitan turnos.  
+
 
 CREATE TABLE pacientes (
     id               BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -75,32 +52,31 @@ CREATE TABLE pacientes (
 );
 
 
--- USUARIOS
--- Login y rol de acceso al sistema. Cuando rol = 'PROFESIONAL',
--- profesional_id indica a qué profesional corresponde ese login
--- (para que, por ejemplo, solo pueda ver su propia agenda).
--- Para ADMINISTRADOR/RECEPCIONISTA, profesional_id queda NULL.
 
 CREATE TABLE usuarios (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
     nombre_usuario  VARCHAR(50) NOT NULL UNIQUE,
-    contrasena_hash VARCHAR(255) NOT NULL,  -- guardar SIEMPRE hasheada, nunca en texto plano
-    rol             ENUM('ADMINISTRADOR', 'RECEPCIONISTA', 'PROFESIONAL') NOT NULL,
+    contrasena_hash VARCHAR(255) NOT NULL,
+    rol             ENUM(
+        'ADMINISTRADOR',
+        'RECEPCIONISTA',
+        'PROFESIONAL',
+        'PACIENTE'
+    ) NOT NULL,
     profesional_id  BIGINT NULL,
+    paciente_id     BIGINT NULL UNIQUE,
     activo          BOOLEAN NOT NULL DEFAULT TRUE,
 
     CONSTRAINT fk_usuario_profesional
         FOREIGN KEY (profesional_id)
         REFERENCES profesionales(id)
+        ON DELETE SET NULL,
+
+    CONSTRAINT fk_usuario_paciente
+        FOREIGN KEY (paciente_id)
+        REFERENCES pacientes(id)
         ON DELETE SET NULL
 );
-
--- PROFESIONAL_ESPECIALIDAD
--- Relación N:M entre profesionales y especialidades.
--- Si se borra un profesional o una especialidad, se borran acá
--- las relaciones asociadas (ON DELETE CASCADE) — pero en la
--- práctica no deberían borrarse filas de profesionales/
--- especialidades, sino desactivarlas con "activo = false".
 
 CREATE TABLE profesional_especialidad (
     profesional_id  BIGINT NOT NULL,
@@ -120,10 +96,7 @@ CREATE TABLE profesional_especialidad (
 );
 
 
--- HORARIOS DE ATENCIÓN
--- Días/horarios en los que atiende cada profesional y la
--- duración de sus turnos (usada por el backend para calcular
--- los huecos disponibles en el módulo de disponibilidad).
+
 
 CREATE TABLE horarios_atencion (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -147,8 +120,7 @@ CREATE TABLE horarios_atencion (
 );
 
 
--- TURNOS
--- hora_inicio/hora_fin quedan grabados en el propio turno 
+
 
 
 CREATE TABLE turnos (
@@ -176,7 +148,7 @@ CREATE TABLE turnos (
 );
 
 
--- Índices para las consultas más frecuentes del sistema
+
 
 CREATE INDEX idx_turnos_paciente ON turnos (paciente_id);
 CREATE INDEX idx_turnos_profesional_fecha ON turnos (profesional_id, fecha);
