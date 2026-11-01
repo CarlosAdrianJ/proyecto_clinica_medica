@@ -374,6 +374,32 @@ class SeguridadIntegrationTest {
     }
 
     @Test
+    void pacienteRegistradoPuedeConsultarSuPanel() throws Exception {
+        String respuesta = mvc.perform(post("/api/auth/registro-paciente")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {"nombre":"Ana","apellido":"Prueba","dni":"98765432",
+                         "email":"ana@example.com","nombreUsuario":"paciente.nuevo",
+                         "contrasena":"Paciente123!"}
+                        """))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        String token = JsonPath.read(respuesta, "$.token");
+
+        mvc.perform(get("/api/pacientes/mi-perfil")
+                .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.dni").value("98765432"));
+        mvc.perform(get("/api/turnos/mi-historial")
+                .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(content().json("[]"));
+        mvc.perform(get("/api/turnos")
+                .header("Authorization", "Bearer " + token))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     void profesionalPuedeConsultarSolamenteSuAgenda() throws Exception {
         String token = login("profesional");
 

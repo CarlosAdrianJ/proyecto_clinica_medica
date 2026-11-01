@@ -194,6 +194,10 @@ public class SecurityConfig {
                                 "/api/turnos/mi-agenda"
                         ).hasRole("PROFESIONAL")
                         .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/turnos/mi-historial"
+                        ).hasRole("PACIENTE")
+                        .requestMatchers(
                                 "/api/turnos",
                                 "/api/turnos/**"
                         ).hasAnyRole(
