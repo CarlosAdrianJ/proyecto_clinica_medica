@@ -3,14 +3,13 @@ package com.clinica.medica.disponibilidad.controller;
 import com.clinica.medica.disponibilidad.dto.DisponibilidadResponse;
 import com.clinica.medica.disponibilidad.service.DisponibilidadService;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
-
-import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/api/disponibilidad")
@@ -24,7 +23,11 @@ public class DisponibilidadController {
         this.disponibilidadService = disponibilidadService;
     }
 
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'RECEPCIONISTA') or @accesoProfesional.puedeConsultar(authentication, #profesionalId)")
+    @PreAuthorize(
+            "hasAnyRole('ADMINISTRADOR', 'RECEPCIONISTA', 'PACIENTE') "
+                    + "or @accesoProfesional.puedeConsultar("
+                    + "authentication, #profesionalId)"
+    )
     @GetMapping
     public DisponibilidadResponse consultar(
             @RequestParam Long profesionalId,
