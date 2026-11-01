@@ -152,14 +152,10 @@ public class SecurityConfig {
                                 "/api/usuarios",
                                 "/api/usuarios/**"
                         ).hasRole("ADMINISTRADOR")
-
-                        // El paciente puede consultar solamente su propio perfil.
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/pacientes/mi-perfil"
                         ).hasRole("PACIENTE")
-
-                        // Las demás rutas de pacientes siguen restringidas.
                         .requestMatchers(
                                 "/api/pacientes",
                                 "/api/pacientes/**"
@@ -173,9 +169,18 @@ public class SecurityConfig {
                                 "/api/profesionales/**",
                                 "/api/especialidades",
                                 "/api/especialidades/**",
+                                "/api/disponibilidad",
+                                "/api/disponibilidad/**"
+                        ).hasAnyRole(
+                                "ADMINISTRADOR",
+                                "RECEPCIONISTA",
+                                "PROFESIONAL",
+                                "PACIENTE"
+                        )
+                        .requestMatchers(
+                                HttpMethod.GET,
                                 "/api/horarios-atencion",
-                                "/api/horarios-atencion/**",
-                                "/api/disponibilidad"
+                                "/api/horarios-atencion/**"
                         ).hasAnyRole(
                                 "ADMINISTRADOR",
                                 "RECEPCIONISTA",
@@ -197,6 +202,14 @@ public class SecurityConfig {
                                 HttpMethod.GET,
                                 "/api/turnos/mi-historial"
                         ).hasRole("PACIENTE")
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/turnos"
+                        ).hasAnyRole(
+                                "ADMINISTRADOR",
+                                "RECEPCIONISTA",
+                                "PACIENTE"
+                        )
                         .requestMatchers(
                                 "/api/turnos",
                                 "/api/turnos/**"

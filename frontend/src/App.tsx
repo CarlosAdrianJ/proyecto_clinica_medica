@@ -19,6 +19,7 @@ import EspecialidadesPage from './components/especialidades/EspecialidadesPage';
 import HorariosPage from './components/horarios/HorariosPage';
 import PacientesPage from './components/pacientes/PacientesPage';
 import ProfesionalesPage from './components/profesionales/ProfesionalesPage';
+import SolicitarTurnoPage from './components/turnos/SolicitarTurnoPage';
 import TurnosPage from './components/turnos/TurnosPage';
 import UsuariosPage from './components/usuarios/UsuariosPage';
 import type {
@@ -29,6 +30,7 @@ import type {
 type Pantalla =
   | 'turnos'
   | 'mi-portal'
+  | 'solicitar-turno'
   | 'horarios'
   | 'disponibilidad'
   | 'pacientes'
@@ -139,12 +141,21 @@ function App() {
           <Navbar.Collapse id="navegacion-principal">
             <Nav className="me-auto">
               {usuario.rol === 'PACIENTE' ? (
-                <Nav.Link
-                  active={pantalla === 'mi-portal'}
-                  onClick={() => setPantalla('mi-portal')}
-                >
-                  Mi portal
-                </Nav.Link>
+                <>
+                  <Nav.Link
+                    active={pantalla === 'mi-portal'}
+                    onClick={() => setPantalla('mi-portal')}
+                  >
+                    Mi portal
+                  </Nav.Link>
+
+                  <Nav.Link
+                    active={pantalla === 'solicitar-turno'}
+                    onClick={() => setPantalla('solicitar-turno')}
+                  >
+                    Solicitar turno
+                  </Nav.Link>
+                </>
               ) : (
                 <>
                   {puedeGestionarPacientes && (
@@ -232,7 +243,14 @@ function App() {
       </Navbar>
 
       {usuario.rol === 'PACIENTE' ? (
-        <PortalPaciente token={token} />
+        pantalla === 'solicitar-turno' ? (
+          <SolicitarTurnoPage
+            token={token}
+            onVolver={() => setPantalla('mi-portal')}
+          />
+        ) : (
+          <PortalPaciente token={token} />
+        )
       ) : usuario.rol === 'PROFESIONAL' ? (
         <TurnosPage token={token} rol={usuario.rol} />
       ) : pantalla === 'especialidades' ? (

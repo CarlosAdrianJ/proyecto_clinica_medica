@@ -18,6 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/turnos")
@@ -41,15 +42,7 @@ public class TurnoController {
     public List<TurnoResponse> consultarMiHistorial(
             Authentication authentication
     ) {
-        Long pacienteId = usuarios
-                .findByNombreUsuario(authentication.getName())
-                .map(usuario -> usuario.getPaciente() == null
-                        ? null
-                        : usuario.getPaciente().getId())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Perfil de paciente no encontrado"
-                ));
+        Long pacienteId = obtenerPacienteId(authentication);
 
         return turnoService.buscar(pacienteId, null, null, null);
     }
@@ -106,8 +99,28 @@ public class TurnoController {
 
     @PostMapping
     public ResponseEntity<TurnoResponse> crear(
-            @Valid @RequestBody TurnoRequest request
+            @Valid @RequestBody TurnoRequest request,
+            Authentication authentication
     ) {
+        boolean esPaciente = authentication.getAuthorities().stream()
+                .anyMatch(authority ->
+                        authority.getAuthority().equals("ROLE_PACIENTE")
+                );
+
+        if (esPaciente) {
+            Long pacienteAutenticado = obtenerPacienteId(authentication);
+
+            if (!Objects.equals(
+                    pacienteAutenticado,
+                    request.pacienteId()
+            )) {
+                throw new ResponseStatusException(
+                        HttpStatus.FORBIDDEN,
+                        "Solo puede solicitar turnos para su propia ficha"
+                );
+            }
+        }
+
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(turnoService.crear(request));
@@ -132,5 +145,17 @@ public class TurnoController {
     @PatchMapping("/{id}/cancelar")
     public TurnoResponse cancelar(@PathVariable Long id) {
         return turnoService.cancelar(id);
+    }
+
+    private Long obtenerPacienteId(Authentication authentication) {
+        return usuarios
+                .findByNombreUsuario(authentication.getName())
+                .map(usuario -> usuario.getPaciente() == null
+                        ? null
+                        : usuario.getPaciente().getId())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Perfil de paciente no encontrado"
+                ));
     }
 }
