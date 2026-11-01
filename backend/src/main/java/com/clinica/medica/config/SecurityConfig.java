@@ -184,7 +184,8 @@ public class SecurityConfig {
                         ).hasAnyRole(
                                 "ADMINISTRADOR",
                                 "RECEPCIONISTA",
-                                "PROFESIONAL"
+                                "PROFESIONAL",
+                                "PACIENTE"
                         )
                         .requestMatchers(
                                 "/api/profesionales",

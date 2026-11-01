@@ -6,11 +6,10 @@ import com.clinica.medica.horario.service.HorarioAtencionService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
-import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/api/horarios-atencion")
@@ -24,7 +23,10 @@ public class HorarioAtencionController {
         this.horarioService = horarioService;
     }
 
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'RECEPCIONISTA')")
+    @PreAuthorize(
+            "hasAnyRole('ADMINISTRADOR', 'RECEPCIONISTA', "
+                    + "'PROFESIONAL', 'PACIENTE')"
+    )
     @GetMapping
     public List<HorarioAtencionResponse> listar() {
         return horarioService.listar();
@@ -38,7 +40,11 @@ public class HorarioAtencionController {
         return horarioService.buscarPorId(id);
     }
 
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'RECEPCIONISTA') or @accesoProfesional.puedeConsultar(authentication, #profesionalId)")
+    @PreAuthorize(
+            "hasAnyRole('ADMINISTRADOR', 'RECEPCIONISTA', 'PACIENTE') "
+                    + "or @accesoProfesional.puedeConsultar("
+                    + "authentication, #profesionalId)"
+    )
     @GetMapping("/profesional/{profesionalId}")
     public List<HorarioAtencionResponse> listarPorProfesional(
             @PathVariable Long profesionalId
