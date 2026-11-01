@@ -143,10 +143,38 @@ function App() {
               {usuario.rol === 'PACIENTE' ? (
                 <>
                   <Nav.Link
-                    active={pantalla === 'mi-portal'}
-                    onClick={() => setPantalla('mi-portal')}
+                    active={pantalla === 'especialidades'}
+                    onClick={() => setPantalla('especialidades')}
                   >
-                    Mi portal
+                    Especialidades
+                  </Nav.Link>
+
+                  <Nav.Link
+                    active={pantalla === 'turnos'}
+                    onClick={() => setPantalla('turnos')}
+                  >
+                    Turnos
+                  </Nav.Link>
+
+                  <Nav.Link
+                    active={pantalla === 'horarios'}
+                    onClick={() => setPantalla('horarios')}
+                  >
+                    Horarios
+                  </Nav.Link>
+
+                  <Nav.Link
+                    active={pantalla === 'disponibilidad'}
+                    onClick={() => setPantalla('disponibilidad')}
+                  >
+                    Disponibilidad
+                  </Nav.Link>
+
+                  <Nav.Link
+                    active={pantalla === 'profesionales'}
+                    onClick={() => setPantalla('profesionales')}
+                  >
+                    Profesionales
                   </Nav.Link>
 
                   <Nav.Link
@@ -154,6 +182,13 @@ function App() {
                     onClick={() => setPantalla('solicitar-turno')}
                   >
                     Solicitar turno
+                  </Nav.Link>
+
+                  <Nav.Link
+                    active={pantalla === 'mi-portal'}
+                    onClick={() => setPantalla('mi-portal')}
+                  >
+                    Mi portal
                   </Nav.Link>
                 </>
               ) : (
@@ -248,16 +283,46 @@ function App() {
             token={token}
             onVolver={() => setPantalla('mi-portal')}
           />
+        ) : pantalla === 'especialidades' ? (
+          <EspecialidadesPage
+            token={token}
+            rol={usuario.rol}
+          />
+        ) : pantalla === 'profesionales' ? (
+          <Container fluid className="py-4">
+            <ProfesionalesPage
+              token={token}
+              usuario={usuario}
+            />
+          </Container>
+        ) : pantalla === 'horarios' ? (
+          <HorariosPage
+            token={token}
+            rol={usuario.rol}
+            profesionalId={usuario.profesionalId}
+          />
+        ) : pantalla === 'disponibilidad' ? (
+          <DisponibilidadPage
+            token={token}
+            rol={usuario.rol}
+            profesionalId={usuario.profesionalId}
+          />
         ) : (
           <PortalPaciente token={token} />
         )
       ) : usuario.rol === 'PROFESIONAL' ? (
         <TurnosPage token={token} rol={usuario.rol} />
       ) : pantalla === 'especialidades' ? (
-        <EspecialidadesPage token={token} rol={usuario.rol} />
+        <EspecialidadesPage
+          token={token}
+          rol={usuario.rol}
+        />
       ) : pantalla === 'profesionales' ? (
         <Container fluid className="py-4">
-          <ProfesionalesPage token={token} usuario={usuario} />
+          <ProfesionalesPage
+            token={token}
+            usuario={usuario}
+          />
         </Container>
       ) : pantalla === 'usuarios' &&
         usuario.rol === 'ADMINISTRADOR' ? (
@@ -281,7 +346,10 @@ function App() {
           profesionalId={usuario.profesionalId}
         />
       ) : (
-        <TurnosPage token={token} rol={usuario.rol} />
+        <TurnosPage
+          token={token}
+          rol={usuario.rol}
+        />
       )}
     </>
   );
