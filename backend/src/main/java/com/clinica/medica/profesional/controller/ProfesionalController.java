@@ -6,11 +6,10 @@ import com.clinica.medica.profesional.service.ProfesionalService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
-import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/api/profesionales")
@@ -22,7 +21,7 @@ public class ProfesionalController {
         this.profesionalService = profesionalService;
     }
 
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'RECEPCIONISTA')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'RECEPCIONISTA', 'PACIENTE')")
     @GetMapping
     public List<ProfesionalResponse> listar() {
         return profesionalService.listar();
@@ -36,7 +35,9 @@ public class ProfesionalController {
 
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'RECEPCIONISTA')")
     @GetMapping("/matricula/{matricula}")
-    public ProfesionalResponse buscarPorMatricula(@PathVariable String matricula) {
+    public ProfesionalResponse buscarPorMatricula(
+            @PathVariable String matricula
+    ) {
         return profesionalService.buscarPorMatricula(matricula);
     }
 
