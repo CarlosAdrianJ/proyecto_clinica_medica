@@ -100,11 +100,12 @@ Por lo tanto, esta primera versión no incluirá:
 - Facturación, cobros o administración de pagos.
 - Integraciones con WhatsApp, correo electrónico u otros servicios externos.
 - Envío automático de recordatorios o notificaciones.
-- Reserva autónoma de turnos por parte de los pacientes. El portal de esta versión permite registrarse y consultar el perfil y el historial de turnos propios.
 - Gestión de consultas virtuales o videollamadas.
 - Reportes estadísticos o herramientas avanzadas de análisis.
 
 Estas funcionalidades podrán considerarse como posibles ampliaciones futuras del sistema.
+
+Ampliación del alcance durante el desarrollo: se incorporó la solicitud de turnos por parte de los pacientes. El paciente autenticado puede consultar profesionales, horarios y disponibilidad, y pedir turnos asociados a su propia ficha. Las operaciones administrativas de alta, baja y modificación siguen restringidas a Administrador y Recepcionista.
 
 La primera versión se considerará funcional cuando permita realizar de manera centralizada el
 circuito básico de gestión de un turno: registrar los datos necesarios, consultar la
