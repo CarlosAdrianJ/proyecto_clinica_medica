@@ -135,8 +135,11 @@ entorno accesible para la demostración del proyecto.
 
 ## Repositorio
 
-
 [Repositorio del proyecto en GitHub](https://github.com/CarlosAdrianJ/proyecto_clinica_medica)
+
+## Sistema desplegado
+
+[Acceder a la aplicación de Clínica Médica](https://proyecto-clinica-medica-1.onrender.com)
 
 ## Estado del proyecto
 
