@@ -73,7 +73,7 @@ disponibilidad para una fecha determinada. A partir de esta información, el per
 administrativo podrá registrar nuevos turnos vinculando un paciente con un profesional, una
 fecha y un horario. El sistema deberá controlar la disponibilidad antes de realizar la asignación,
 evitando que se registren turnos superpuestos para un mismo profesional.
-Los turnos registrados podrán consultarse desde una agenda centralizada y será posible cancelarlos o reprogramarlos cuando sea necesario. También se podrá identificar el estado de cada turno —pendiente, atendido, cancelado o ausente— para facilitar el seguimiento de la atención. Además, los pacientes podrán registrarse e ingresar con su propia cuenta para consultar sus datos personales y el historial de sus turnos. Cada paciente tendrá acceso únicamente a su propia información.
+Los turnos registrados podrán consultarse desde una agenda centralizada y será posible cancelarlos o reprogramarlos cuando sea necesario. También se podrá identificar el estado de cada turno —pendiente, atendido, cancelado o ausente— para facilitar el seguimiento de la atención. Los pacientes podrán registrarse e ingresar con su propia cuenta para consultar su perfil y el historial de sus turnos. Además, podrán consultar profesionales, especialidades, horarios y disponibilidad, y solicitar turnos. El backend asociará cada solicitud con la ficha del paciente autenticado. Cada paciente solo podrá consultar su propio perfil y su historial; las operaciones administrativas de alta, baja y modificación seguirán restringidas a Administrador y Recepcionista.
 
 De esta manera, el alcance de la primera versión comprenderá principalmente:
 - Gestión de pacientes.
@@ -126,7 +126,7 @@ controlar servicios y repositorios, facilitando la organización de la lógica d
 directamente a la base de datos, reduciendo el código repetitivo de acceso a datos.
 - **Base de datos**: MySQL, motor de base de datos robusto y utilizado en Java.
 - **Frontend**: React con TypeScript para la construcción de la interfaz, junto con Bootstrap (react-bootstrap) para el diseño y estilos de los componentes. Esto permite contar con componentes visuales ya probados (formularios, tablas, botones, navegación) y mantener una interfaz consistente sin invertir tiempo excesivo en diseño desde cero. React consume la información del backend a través de una API REST, manteniendo el frontend y el backend desacoplados.
-- - **Seguridad**: Spring Security y JWT (JSON Web Tokens) se utilizan para autenticar usuarios y controlar el acceso a los endpoints según los roles Administrador, Recepcionista y Profesional. Las contraseñas se protegen con BCrypt. El frontend envía el token JWT en las solicitudes protegidas. CORS permite los orígenes configurados para cada entorno y el backend valida los datos mediante Bean Validation.
+- - **Seguridad**: Spring Security y JWT (JSON Web Tokens) se utilizan para autenticar usuarios y controlar el acceso a los endpoints según los roles Administrador, Recepcionista ,Paciente y Profesional. Las contraseñas se protegen con BCrypt. El frontend envía el token JWT en las solicitudes protegidas. CORS permite los orígenes configurados para cada entorno y el backend valida los datos mediante Bean Validation.
 - **Control de versiones**: Git y GitHub, para la gestión colaborativa del código fuente y el
 seguimiento de los cambios realizados por el equipo.
 - **Despliegue**: vamos a utilizar plataformas cloud, con el objetivo de contar con un
@@ -140,7 +140,8 @@ entorno accesible para la demostración del proyecto.
 
 ## Estado del proyecto
 
-El proyecto se encuentra en una etapa avanzada de desarrollo. Los módulos de pacientes, profesionales, especialidades, horarios de atención, disponibilidad, turnos y usuarios y seguridad están implementados y probados en el backend. El sistema utiliza autenticación mediante JWT, contraseñas protegidas con BCrypt y control de acceso según los roles Administrador, Recepcionista y Profesional. El frontend cuenta con inicio y cierre de sesión, almacenamiento y validación de la sesión, envío del token JWT y navegación según el rol autenticado. Se encuentran integradas las pantallas de especialidades, profesionales, pacientes, horarios de atención, disponibilidad, turnos, agenda profesional y administración de usuarios. La integración fue verificada visualmente con sesiones reales: el Administrador accede a todos los módulos, el Recepcionista utiliza las funciones operativas autorizadas y el Profesional consulta únicamente su propia agenda. Ver [integración y verificación del frontend](docs/integracion-frontend.md).
+El proyecto se encuentra en una etapa avanzada de desarrollo. Los módulos de pacientes, profesionales, especialidades, horarios de atención, disponibilidad, turnos, usuarios y seguridad están implementados y probados en el backend. El sistema utiliza autenticación mediante JWT, contraseñas protegidas con BCrypt y control de acceso según los roles Administrador, Recepcionista, Profesional y Paciente. El frontend cuenta con inicio y cierre de sesión, almacenamiento y validación de la sesión, envío del token JWT y navegación según el rol autenticado. Se encuentran integradas las pantallas de especialidades, profesionales, pacientes, horarios de atención, disponibilidad, turnos, agenda profesional y administración de usuarios, además del portal del paciente, que permite consultar su información y solicitar turnos asociados a su propia ficha. La integración fue verificada visualmente con sesiones reales: el Administrador accede a todos los módulos, el Recepcionista utiliza las funciones operativas autorizadas, el Profesional consulta únicamente su propia agenda y el Paciente accede a su portal. Ver [integración y verificación del frontend](docs/integracion-frontend.md).
+
 ## Documentación del proyecto
 
 La documentación correspondiente al análisis y diseño se encuentra organizada en la carpeta `docs`:
@@ -198,7 +199,7 @@ flowchart TD
     F["Seguridad: Spring Security + JWT"] -.-> B
 ```
 
--  **Frontend:** interfaz desarrollada con React, TypeScript y Vite. Para los estilos se utilizarán React-Bootstrap, Bootstrap y hojas CSS propias. Permitirá que el personal administrativo gestione el sistema, que los profesionales consulten su agenda y que los pacientes accedan a su perfil y al historial de sus turnos
+-  **Frontend:** interfaz desarrollada con React, TypeScript y Vite. Para los estilos se utilizarán React-Bootstrap, Bootstrap y hojas CSS propias. Permitirá que el personal administrativo gestione el sistema, que los profesionales consulten su agenda y que los pacientes accedan a su perfil y al historial de sus turnos. Además, los pacientes podrán consultar profesionales, especialidades, horarios y disponibilidad, y solicitar turnos asociados a su propia ficha.
 - **Backend:** aplicación desarrollada con Java y Spring Boot. Contendrá la lógica de negocio, las validaciones y la API REST.
 - **Persistencia:** se utilizará Spring Data JPA para relacionar las entidades Java con las tablas de la base de datos.
 - **Base de datos:** se utilizará MySQL para almacenar pacientes, profesionales, especialidades, horarios, usuarios y turnos.
@@ -230,8 +231,7 @@ Las principales funcionalidades serán:
 - Modificar los datos de un paciente.
 - Realizar la baja lógica de un paciente mediante el campo activo.
 
-Los pacientes también podrán registrarse e ingresar al portal para consultar su perfil y el historial de sus propios turnos.  
-Los datos principales administrados serán nombre, apellido, DNI, fecha de nacimiento, teléfono, correo electrónico y dirección.
+Los pacientes podrán registrarse e ingresar al portal para consultar su perfil y el historial de sus propios turnos, consultar profesionales, especialidades, horarios y disponibilidad, y solicitar turnos asociados exclusivamente a su propia ficha.
 
 
 #### 2. Módulo de profesionales
@@ -292,6 +292,7 @@ Será el módulo central del sistema y permitirá administrar el ciclo de vida d
 Las principales funcionalidades serán:
 - Registrar un nuevo turno.
 - Asociar el turno con un paciente.
+- El paciente autenticado puede solicitar turnos asociados exclusivamente a su propia ficha.
 - Seleccionar un profesional y una especialidad válida para dicho profesional.
 - Seleccionar fecha y horario.
 - Validar la disponibilidad antes de registrar el turno.
@@ -337,12 +338,11 @@ Las funcionalidades implementadas son:
 - Restricción de las consultas del profesional a sus propios datos, horarios y disponibilidad.
 - Rechazo del acceso de cuentas desactivadas, incluso cuando presentan un token previamente emitido.
 
-El Administrador gestiona las cuentas y los catálogos del sistema. El Recepcionista puede gestionar pacientes y consultar profesionales, especialidades, horarios y disponibilidad. El Profesional puede consultar su propia agenda y la información autorizada asociada a su cuenta. El Paciente puede ingresar a su portal y consultar únicamente su perfil y el historial de sus turnos.
+El Administrador gestiona las cuentas y los catálogos del sistema. El Recepcionista puede gestionar pacientes y consultar profesionales, especialidades, horarios y disponibilidad. El Profesional puede consultar su propia agenda y la información autorizada asociada a su cuenta. El Paciente puede ingresar a su portal para consultar su perfil y el historial de sus propios turnos, consultar profesionales, especialidades, horarios y disponibilidad, y solicitar turnos asociados exclusivamente a su propia ficha.
 
 Los endpoints administrativos del módulo de turnos están habilitados para los roles Administrador y Recepcionista. El profesional autenticado puede consultar únicamente sus propios turnos mediante el endpoint `/api/turnos/mi-agenda`. En el frontend se implementaron el inicio de sesión, el almacenamiento y envío del JWT, el cierre de sesión y la pantalla visual de turnos y agenda según el rol autenticado.
 
-Los pacientes pueden registrarse desde la pantalla de inicio de sesión y acceder al sistema con su propia cuenta. Al registrarse, se crea su perfil y se le asigna el rol PACIENTE. Una vez dentro, pueden consultar únicamente sus propios datos y el historial de sus turnos. El sistema restringe el acceso para proteger la información personal de cada paciente.
-
+Los pacientes pueden registrarse desde la pantalla de inicio de sesión y acceder al sistema con su propia cuenta. Al registrarse, se crea su perfil y se le asigna el rol PACIENTE. Una vez dentro, pueden consultar sus propios datos y el historial de sus turnos, consultar profesionales, especialidades, horarios y disponibilidad, y solicitar turnos asociados a su propia ficha. El sistema restringe el acceso para proteger la información personal de cada paciente.
 ### Estado de los módulos subidos al repositorio
 
 El listado anterior describe los módulos planificados para el sistema. A continuación se distingue el código implementado y subido al repositorio del trabajo que aún está en desarrollo:
