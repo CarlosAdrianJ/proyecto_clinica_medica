@@ -82,6 +82,7 @@ public class DisponibilidadService {
 
         DayOfWeek dia = fecha.getDayOfWeek();
         DiaSemana diaSemana = convertirDiaSemana(dia);
+
         LocalTime horaCierre = dia == DayOfWeek.SATURDAY
                 ? CIERRE_SABADO
                 : CIERRE_LUNES_A_VIERNES;
@@ -107,7 +108,9 @@ public class DisponibilidadService {
         horarios.stream()
                 .filter(horario -> horario.getDiaSemana() == diaSemana)
                 .filter(horario -> horario.getDuracionTurno() == 30)
-                
+                .filter(horario ->
+                        esBloqueDeTreintaMinutos(horario.getHoraDesde())
+                )
                 .sorted(Comparator.comparing(HorarioAtencion::getHoraDesde))
                 .forEach(horario ->
                         generarFranjas(
