@@ -35,196 +35,179 @@ import java.util.List;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    @Bean
-    PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(12);
-    }
-
-    @Bean
-    SecretKey jwtKey(
-            @Value("${security.jwt.secret}") String secret
-    ) {
-        byte[] bytes = Base64.getDecoder().decode(secret);
-
-        if (bytes.length < 32) {
-            throw new IllegalArgumentException(
-                    "JWT_SECRET requiere al menos 32 bytes en Base64"
-            );
+        @Bean
+        PasswordEncoder passwordEncoder() {
+                return new BCryptPasswordEncoder(12);
         }
 
-        return new SecretKeySpec(bytes, "HmacSHA256");
-    }
+        @Bean
+        SecretKey jwtKey(
+                        @Value("${security.jwt.secret}") String secret) {
+                byte[] bytes = Base64.getDecoder().decode(secret);
 
-    @Bean
-    JwtEncoder jwtEncoder(SecretKey key) {
-        return new NimbusJwtEncoder(new ImmutableSecret<>(key));
-    }
+                if (bytes.length < 32) {
+                        throw new IllegalArgumentException(
+                                        "JWT_SECRET requiere al menos 32 bytes en Base64");
+                }
 
-    @Bean
-    JwtDecoder jwtDecoder(SecretKey key) {
-        NimbusJwtDecoder decoder = NimbusJwtDecoder
-                .withSecretKey(key)
-                .macAlgorithm(MacAlgorithm.HS256)
-                .build();
+                return new SecretKeySpec(bytes, "HmacSHA256");
+        }
 
-        decoder.setJwtValidator(
-                JwtValidators.createDefaultWithIssuer("clinica-medica")
-        );
+        @Bean
+        JwtEncoder jwtEncoder(SecretKey key) {
+                return new NimbusJwtEncoder(new ImmutableSecret<>(key));
+        }
 
-        return decoder;
-    }
+        @Bean
+        JwtDecoder jwtDecoder(SecretKey key) {
+                NimbusJwtDecoder decoder = NimbusJwtDecoder
+                                .withSecretKey(key)
+                                .macAlgorithm(MacAlgorithm.HS256)
+                                .build();
 
-    @Bean
-    CorsConfigurationSource corsConfigurationSource(
-            @Value("${app.cors.allowed-origins:http://localhost:5173}")
-            String origenesPermitidos
-    ) {
-        List<String> origenes = Arrays.stream(
-                        origenesPermitidos.split(",")
-                )
-                .map(String::trim)
-                .filter(origen -> !origen.isEmpty())
-                .toList();
+                decoder.setJwtValidator(
+                                JwtValidators.createDefaultWithIssuer("clinica-medica"));
 
-        CorsConfiguration configuracion = new CorsConfiguration();
-        configuracion.setAllowedOrigins(origenes);
-        configuracion.setAllowedMethods(List.of(
-                "GET",
-                "POST",
-                "PUT",
-                "PATCH",
-                "DELETE",
-                "OPTIONS"
-        ));
-        configuracion.setAllowedHeaders(List.of(
-                "Authorization",
-                "Content-Type"
-        ));
-        configuracion.setAllowCredentials(false);
-        configuracion.setMaxAge(3600L);
+                return decoder;
+        }
 
-        UrlBasedCorsConfigurationSource origenConfigurado =
-                new UrlBasedCorsConfigurationSource();
-        origenConfigurado.registerCorsConfiguration(
-                "/**",
-                configuracion
-        );
+        @Bean
+        CorsConfigurationSource corsConfigurationSource(
+                        @Value("${app.cors.allowed-origins:http://localhost:5173}") String origenesPermitidos) {
+                List<String> origenes = Arrays.stream(
+                                origenesPermitidos.split(","))
+                                .map(String::trim)
+                                .filter(origen -> !origen.isEmpty())
+                                .toList();
 
-        return origenConfigurado;
-    }
+                CorsConfiguration configuracion = new CorsConfiguration();
+                configuracion.setAllowedOrigins(origenes);
+                configuracion.setAllowedMethods(List.of(
+                                "GET",
+                                "POST",
+                                "PUT",
+                                "PATCH",
+                                "DELETE",
+                                "OPTIONS"));
+                configuracion.setAllowedHeaders(List.of(
+                                "Authorization",
+                                "Content-Type"));
+                configuracion.setAllowCredentials(false);
+                configuracion.setMaxAge(3600L);
 
-    @Bean
-    SecurityFilterChain securityFilterChain(
-            HttpSecurity http,
-            UsuarioJwtConverter converter
-    ) throws Exception {
-        return http
-                .cors(Customizer.withDefaults())
-                .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(
-                                SessionCreationPolicy.STATELESS
-                        )
-                )
-                .authorizeHttpRequests(authorize -> authorize
-                        .dispatcherTypeMatchers(
-                                DispatcherType.ERROR
-                        ).permitAll()
-                        .requestMatchers(
-                                HttpMethod.OPTIONS,
-                                "/**"
-                        ).permitAll()
-                        .requestMatchers(
-                                "/",
-                                "/index.html",
-                                "/favicon.ico",
-                                "/assets/**"
-                        ).permitAll()
-                        .requestMatchers(
-                                HttpMethod.POST,
-                                "/api/auth/login",
-                                "/api/auth/registro-paciente"
-                        ).permitAll()
-                        .requestMatchers(
-                                "/api/auth/me"
-                        ).authenticated()
-                        .requestMatchers(
-                                "/api/usuarios",
-                                "/api/usuarios/**"
-                        ).hasRole("ADMINISTRADOR")
-                        .requestMatchers(
-                                HttpMethod.GET,
-                                "/api/pacientes/mi-perfil"
-                        ).hasRole("PACIENTE")
-                        .requestMatchers(
-                                "/api/pacientes",
-                                "/api/pacientes/**"
-                        ).hasAnyRole(
-                                "ADMINISTRADOR",
-                                "RECEPCIONISTA"
-                        )
-                        .requestMatchers(
-                                HttpMethod.GET,
-                                "/api/profesionales",
-                                "/api/profesionales/**",
-                                "/api/especialidades",
-                                "/api/especialidades/**",
-                                "/api/disponibilidad",
-                                "/api/disponibilidad/**"
-                        ).hasAnyRole(
-                                "ADMINISTRADOR",
-                                "RECEPCIONISTA",
-                                "PROFESIONAL",
-                                "PACIENTE"
-                        )
-                        .requestMatchers(
-                                HttpMethod.GET,
-                                "/api/horarios-atencion",
-                                "/api/horarios-atencion/**"
-                        ).hasAnyRole(
-                                "ADMINISTRADOR",
-                                "RECEPCIONISTA",
-                                "PROFESIONAL",
-                                "PACIENTE"
-                        )
-                        .requestMatchers(
-                                "/api/profesionales",
-                                "/api/profesionales/**",
-                                "/api/especialidades",
-                                "/api/especialidades/**",
-                                "/api/horarios-atencion",
-                                "/api/horarios-atencion/**"
-                        ).hasRole("ADMINISTRADOR")
-                        .requestMatchers(
-                                HttpMethod.GET,
-                                "/api/turnos/mi-agenda"
-                        ).hasRole("PROFESIONAL")
-                        .requestMatchers(
-                                HttpMethod.GET,
-                                "/api/turnos/mi-historial"
-                        ).hasRole("PACIENTE")
-                        .requestMatchers(
-                                HttpMethod.POST,
-                                "/api/turnos"
-                        ).hasAnyRole(
-                                "ADMINISTRADOR",
-                                "RECEPCIONISTA",
-                                "PACIENTE"
-                        )
-                        .requestMatchers(
-                                "/api/turnos",
-                                "/api/turnos/**"
-                        ).hasAnyRole(
-                                "ADMINISTRADOR",
-                                "RECEPCIONISTA"
-                        )
-                        .anyRequest().denyAll()
-                )
-                .oauth2ResourceServer(resourceServer ->
-                        resourceServer.jwt(jwt ->
-                                jwt.jwtAuthenticationConverter(converter)
-                        )
-                )
-                .build();
-    }
+                UrlBasedCorsConfigurationSource origenConfigurado = new UrlBasedCorsConfigurationSource();
+                origenConfigurado.registerCorsConfiguration(
+                                "/**",
+                                configuracion);
+
+                return origenConfigurado;
+        }
+
+        @Bean
+        SecurityFilterChain securityFilterChain(
+                        HttpSecurity http,
+                        UsuarioJwtConverter converter) throws Exception {
+                return http
+                                .cors(Customizer.withDefaults())
+                                .csrf(AbstractHttpConfigurer::disable)
+                                .sessionManagement(session -> session
+                                                .sessionCreationPolicy(
+                                                                SessionCreationPolicy.STATELESS))
+                                .authorizeHttpRequests(authorize -> authorize
+                                                .dispatcherTypeMatchers(
+                                                                DispatcherType.ERROR)
+                                                .permitAll()
+                                                .requestMatchers(
+                                                                HttpMethod.OPTIONS,
+                                                                "/**")
+                                                .permitAll()
+                                                .requestMatchers(
+                                                                "/",
+                                                                "/index.html",
+                                                                "/favicon.ico",
+                                                                "/assets/**")
+                                                .permitAll()
+                                                .requestMatchers(
+                                                                HttpMethod.POST,
+                                                                "/api/auth/login",
+                                                                "/api/auth/registro-paciente")
+                                                .permitAll()
+                                                .requestMatchers(
+                                                                "/api/auth/me")
+                                                .authenticated()
+                                                .requestMatchers(
+                                                                "/api/usuarios",
+                                                                "/api/usuarios/**")
+                                                .hasRole("ADMINISTRADOR")
+                                                .requestMatchers(
+                                                                HttpMethod.GET,
+                                                                "/api/pacientes/mi-perfil")
+                                                .hasRole("PACIENTE")
+                                                .requestMatchers(
+                                                                "/api/pacientes",
+                                                                "/api/pacientes/**")
+                                                .hasAnyRole(
+                                                                "ADMINISTRADOR",
+                                                                "RECEPCIONISTA")
+                                                .requestMatchers(
+                                                                HttpMethod.GET,
+                                                                "/api/profesionales",
+                                                                "/api/profesionales/**",
+                                                                "/api/especialidades",
+                                                                "/api/especialidades/**",
+                                                                "/api/disponibilidad",
+                                                                "/api/disponibilidad/**")
+                                                .hasAnyRole(
+                                                                "ADMINISTRADOR",
+                                                                "RECEPCIONISTA",
+                                                                "PROFESIONAL",
+                                                                "PACIENTE")
+                                                .requestMatchers(
+                                                                HttpMethod.GET,
+                                                                "/api/horarios-atencion/profesional/**")
+                                                .hasAnyRole(
+                                                                "ADMINISTRADOR",
+                                                                "RECEPCIONISTA",
+                                                                "PROFESIONAL")
+                                                .requestMatchers(
+                                                                HttpMethod.GET,
+                                                                "/api/horarios-atencion")
+                                                .hasAnyRole(
+                                                                "ADMINISTRADOR",
+                                                                "RECEPCIONISTA")
+
+                                                .requestMatchers(
+                                                                "/api/profesionales",
+                                                                "/api/profesionales/**",
+                                                                "/api/especialidades",
+                                                                "/api/especialidades/**",
+                                                                "/api/horarios-atencion",
+                                                                "/api/horarios-atencion/**")
+                                                .hasRole("ADMINISTRADOR")
+                                                .requestMatchers(
+                                                                HttpMethod.GET,
+                                                                "/api/turnos/mi-agenda")
+                                                .hasRole("PROFESIONAL")
+                                                .requestMatchers(
+                                                                HttpMethod.GET,
+                                                                "/api/turnos/mi-historial")
+                                                .hasRole("PACIENTE")
+                                                .requestMatchers(
+                                                                HttpMethod.POST,
+                                                                "/api/turnos")
+                                                .hasAnyRole(
+                                                                "ADMINISTRADOR",
+                                                                "RECEPCIONISTA",
+                                                                "PACIENTE")
+                                                .requestMatchers(
+                                                                "/api/turnos",
+                                                                "/api/turnos/**")
+                                                .hasAnyRole(
+                                                                "ADMINISTRADOR",
+                                                                "RECEPCIONISTA")
+                                                .anyRequest().denyAll())
+                                .oauth2ResourceServer(resourceServer -> resourceServer
+                                                .jwt(jwt -> jwt.jwtAuthenticationConverter(converter)))
+                                .build();
+        }
 }

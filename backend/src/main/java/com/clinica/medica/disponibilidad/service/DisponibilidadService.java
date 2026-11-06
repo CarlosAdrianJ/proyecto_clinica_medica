@@ -107,12 +107,7 @@ public class DisponibilidadService {
         horarios.stream()
                 .filter(horario -> horario.getDiaSemana() == diaSemana)
                 .filter(horario -> horario.getDuracionTurno() == 30)
-                .filter(horario ->
-                        esBloqueDeTreintaMinutos(horario.getHoraDesde())
-                )
-                .filter(horario ->
-                        esBloqueDeTreintaMinutos(horario.getHoraHasta())
-                )
+                
                 .sorted(Comparator.comparing(HorarioAtencion::getHoraDesde))
                 .forEach(horario ->
                         generarFranjas(
