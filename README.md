@@ -141,6 +141,11 @@ entorno accesible para la demostración del proyecto.
 
 [Acceder a la aplicación de Clínica Médica](https://proyecto-clinica-medica-1.onrender.com)
 
+## Entrega final
+
+- **Informe Técnico Final (PDF):** [Abrir o descargar el informe](https://drive.google.com/file/d/1yZAVyR-GP2RAjq4N77rwcEhPKz_whq5m/view?usp=sharing)
+- **Video de presentación:** [Ver el video](https://drive.google.com/file/d/1SU34Sx0pp6SBPhDW2MWf_h5dycJypZYM/view?usp=sharing)
+
 ## Estado del proyecto
 
 El proyecto se encuentra en una etapa avanzada de desarrollo. Los módulos de pacientes, profesionales, especialidades, horarios de atención, disponibilidad, turnos, usuarios y seguridad están implementados y probados en el backend. El sistema utiliza autenticación mediante JWT, contraseñas protegidas con BCrypt y control de acceso según los roles Administrador, Recepcionista, Profesional y Paciente. El frontend cuenta con inicio y cierre de sesión, almacenamiento y validación de la sesión, envío del token JWT y navegación según el rol autenticado. Se encuentran integradas las pantallas de especialidades, profesionales, pacientes, horarios de atención, disponibilidad, turnos, agenda profesional y administración de usuarios, además del portal del paciente, que permite consultar su información y solicitar turnos asociados a su propia ficha. La integración fue verificada visualmente con sesiones reales: el Administrador accede a todos los módulos, el Recepcionista utiliza las funciones operativas autorizadas, el Profesional consulta únicamente su propia agenda y el Paciente accede a su portal. Ver [integración y verificación del frontend](docs/integracion-frontend.md).
