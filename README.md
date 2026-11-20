@@ -143,7 +143,7 @@ entorno accesible para la demostración del proyecto.
 
 ## Entrega final
 
-- **Informe Técnico Final (PDF):** [Abrir o descargar el informe](https://drive.google.com/file/d/1yZAVyR-GP2RAjq4N77rwcEhPKz_whq5m/view?usp=sharing)
+- **Informe Técnico Final (PDF):** [Abrir o descargar el informe](docs/Informe_Tecnico_Final_Clinica_Medica.pdf)
 - **Video de presentación:** [Ver el video](https://drive.google.com/file/d/1SU34Sx0pp6SBPhDW2MWf_h5dycJypZYM/view?usp=sharing)
 
 ## Estado del proyecto
