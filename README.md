@@ -139,6 +139,20 @@ entorno accesible para la demostración del proyecto.
 
 ## Sistema desplegado
 
+## Variables de producción
+
+En Render, las variables de entorno del backend se configuran desde el panel del servicio. No se deben publicar en este repositorio contraseñas, secretos JWT ni valores reales de conexión.
+
+- `DB_URL`: dirección JDBC de la base MySQL.
+- `DB_USERNAME` y `DB_PASSWORD`: usuario y contraseña de la base.
+- `JWT_SECRET`: secreto usado para firmar los tokens.
+- `JWT_TTL_SECONDS`: vigencia del token; si no se define, el valor predeterminado es 3600 segundos.
+- `PORT`: puerto HTTP; si no se define, el valor predeterminado es 8080.
+- `CORS_ALLOWED_ORIGINS`: orígenes autorizados para acceder al backend.
+- `SPRING_PROFILES_ACTIVE`: perfil de Spring activo; en producción se utiliza `prod`.
+
+El archivo `.env.example` contiene nombres y valores de ejemplo para orientar la configuración local. No contiene credenciales de producción.
+
 [Acceder a la aplicación de Clínica Médica](https://proyecto-clinica-medica-1.onrender.com)
 
 ## Entrega final
@@ -148,7 +162,7 @@ entorno accesible para la demostración del proyecto.
 
 ## Estado del proyecto
 
-El proyecto se encuentra en una etapa avanzada de desarrollo. Los módulos de pacientes, profesionales, especialidades, horarios de atención, disponibilidad, turnos, usuarios y seguridad están implementados y probados en el backend. El sistema utiliza autenticación mediante JWT, contraseñas protegidas con BCrypt y control de acceso según los roles Administrador, Recepcionista, Profesional y Paciente. El frontend cuenta con inicio y cierre de sesión, almacenamiento y validación de la sesión, envío del token JWT y navegación según el rol autenticado. Se encuentran integradas las pantallas de especialidades, profesionales, pacientes, horarios de atención, disponibilidad, turnos, agenda profesional y administración de usuarios, además del portal del paciente, que permite consultar su información y solicitar turnos asociados a su propia ficha. La integración fue verificada visualmente con sesiones reales: el Administrador accede a todos los módulos, el Recepcionista utiliza las funciones operativas autorizadas, el Profesional consulta únicamente su propia agenda y el Paciente accede a su portal. Ver [integración y verificación del frontend](docs/integracion-frontend.md).
+El sistema cuenta con módulos implementados para pacientes, profesionales, especialidades, horarios de atención, disponibilidad, turnos, usuarios y seguridad. También incluye el portal del paciente y la agenda profesional, con acceso según el rol. La aplicación está publicada en Render y utiliza actualmente una base MySQL alojada en Aiven. La migración de la base de datos todavía está pendiente y debe completarse antes del 21 de diciembre de 2026. Los últimos resultados registrados son 109 pruebas aprobadas en el backend, en la ejecución del 6 de noviembre de 2026, y 11 casos aprobados de 12 en el frontend; queda pendiente un TODO relacionado con el mensaje de error de red de Especialidades. Para cerrar la entrega falta completar las capturas solicitadas y actualizar la documentación después de la migración. Ver [integración y verificación del frontend](docs/integracion-frontend.md).
 
 ## Documentación del proyecto
 
@@ -517,7 +531,7 @@ Desde la raíz del proyecto:
 .\backend\mvnw.cmd -f .\backend\pom.xml test
 ```
 
-En la verificación del 29/10/2026 se aprobaron 108 pruebas automatizadas del backend, sin fallos ni errores.
+En la ejecución del 6 de noviembre de 2026 se aprobaron 109 pruebas automatizadas del backend, sin fallos ni errores.
 
 Las pruebas automatizadas del frontend registraron 12 casos: 11 aprobados y 1 pendiente (TODO), relacionado con mostrar un mensaje comprensible ante un error de conexión. También se ejecutaron correctamente la compilación de producción (`build`) y el análisis estático (`lint`).
 
