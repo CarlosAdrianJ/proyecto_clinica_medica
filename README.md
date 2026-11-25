@@ -162,7 +162,7 @@ El archivo `.env.example` contiene nombres y valores de ejemplo para orientar la
 
 ## Estado del proyecto
 
-El sistema cuenta con módulos implementados para pacientes, profesionales, especialidades, horarios de atención, disponibilidad, turnos, usuarios y seguridad. También incluye el portal del paciente y la agenda profesional, con acceso según el rol. La aplicación está publicada en Render y utiliza actualmente una base MySQL alojada en Aiven. La migración de la base de datos todavía está pendiente y debe completarse antes del 21 de diciembre de 2026. Los últimos resultados registrados son 109 pruebas aprobadas en el backend, en la ejecución del 6 de noviembre de 2026, y 11 casos aprobados de 12 en el frontend; queda pendiente un TODO relacionado con el mensaje de error de red de Especialidades. Para cerrar la entrega falta completar las capturas solicitadas y actualizar la documentación después de la migración. Ver [integración y verificación del frontend](docs/integracion-frontend.md).
+El sistema cuenta con módulos implementados para pacientes, profesionales, especialidades, horarios de atención, disponibilidad, turnos, usuarios y seguridad. También incluye el portal del paciente y la agenda profesional, con acceso según el rol. La aplicación está publicada en Render y utiliza actualmente una base MySQL alojada en Aiven. La migración de la base de datos todavía está pendiente y debe completarse antes del 21 de diciembre de 2026. Los últimos resultados registrados son 109 pruebas aprobadas en el backend, en la ejecución del 24 de noviembre de 2026, y 11 casos aprobados de 12 en el frontend; queda pendiente un TODO relacionado con el mensaje de error de red de Especialidades. Para cerrar la entrega falta completar las capturas solicitadas y actualizar la documentación después de la migración. Ver [integración y verificación del frontend](docs/integracion-frontend.md).
 
 ## Documentación del proyecto
 
@@ -531,7 +531,7 @@ Desde la raíz del proyecto:
 .\backend\mvnw.cmd -f .\backend\pom.xml test
 ```
 
-En la ejecución del 6 de noviembre de 2026 se aprobaron 109 pruebas automatizadas del backend, sin fallos ni errores.
+En la ejecución del 24 de noviembre de 2026 se aprobaron 109 pruebas automatizadas del backend, sin fallos ni errores.
 
 Las pruebas automatizadas del frontend registraron 12 casos: 11 aprobados y 1 pendiente (TODO), relacionado con mostrar un mensaje comprensible ante un error de conexión. También se ejecutaron correctamente la compilación de producción (`build`) y el análisis estático (`lint`).
 
